@@ -44,7 +44,7 @@ The agent will scaffold a complete function under `functions/<name>/` including:
 - `package.json` + `build.mjs` — build tooling
 - `README.md` — usage instructions
 
-### Build and run locally
+### Build and run 
 
 ```bash
 cd functions/<function-name>
@@ -85,15 +85,3 @@ spin aka deploy
 ```
 
 ---
-
-## Adding your own functions
-
-Just ask your agent. Each generated function is self-contained — build, test, and deploy it independently:
-
-```bash
-cd functions/my-function
-npm install && npm run build
-spin up
-```
-
-To deploy to Akamai, follow the [Akamai Functions deployment guide](https://techdocs.akamai.com/cloud-computing/docs/akamai-functions).
