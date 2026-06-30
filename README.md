@@ -55,6 +55,51 @@ spin aka deploy
 
 ---
 
+## Keeping the reference up to date
+
+The compiled reference at `docs/_compiled/functions-reference.md` is built from individual articles scraped from Akamai techdocs. `ingest_v2.py` manages fetching, change detection, LLM summarization, and recompilation.
+
+### Setup
+
+```bash
+pip install crawl4ai trafilatura requests ollama
+```
+
+Requires a local [Ollama](https://ollama.com/) instance. Configure the model in `config.py`.
+
+### Check for changes and reingest
+
+```bash
+# Re-fetch every indexed URL using a headless browser (bypasses bot protection),
+# compare content hashes, and re-summarize only pages that have changed:
+python ingest_v2.py --check
+
+# Force reingest of all URLs regardless of change detection:
+python ingest_v2.py --check --force
+```
+
+### Ingest a single URL
+
+```bash
+python ingest_v2.py https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store
+```
+
+### Crawl an entire sitemap
+
+```bash
+python ingest_v2.py --sitemap https://techdocs.akamai.com/sitemap.xml --prefix akamai-functions
+```
+
+### Recompile the master reference
+
+After reingesting, ask your AI agent to recompile the master reference using the prompt in `COMPILE_PROMPT.md`:
+
+```
+Recompile docs/_compiled/functions-reference.md following the instructions in COMPILE_PROMPT.md
+```
+
+---
+
 ## Project structure
 
 ```

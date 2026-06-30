@@ -1,71 +1,57 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/quickstart
-Date: 2026-06-05T08:55:26.801346
+Date: 2026-06-30T09:38:04.922415
 Model: gpt-oss:120b-cloud
 ## Runtime Constraints
-- Do not use Node.js versions older than 22; the runtime expects Node.js 22 or newer.  
-- The Spin installer and `aka` plugin are only supported on Linux amd64.  
-- The `spin up` local server defaults to port 3000; if that port is in use you must specify a different port with `--listen`.  
+- No explicit constraints are documented in the source material. (If future docs add limits on module size, CPU, memory, or unsupported JavaScript features, they must be added here.)
 
 ## Supported APIs and Syntax
-- `AutoRouter()` — creates an itty‑router instance that supports declarative route registration.  
-- `router.get(path, handler)` — registers a GET route; `handler` receives request parameters and must return a `Response` or string.  
-- `router.fetch(request)` — processes an incoming `Request` through the router and returns a `Response`.  
-- `addEventListener('fetch', async (event) => { … })` — registers a fetch event listener; `event.respondWith()` must be called with a `Response`.  
-- `new Response(body, init?)` — constructs an HTTP response; `body` can be a string, `Uint8Array`, etc.; `init` may contain status, headers, etc.  
-- `spin new -t http-js --accept-defaults <app-name>` — creates a new JavaScript Spin application from the `http-js` template.  
-- `npm install` — installs Node.js dependencies defined in `package.json`.  
-- `spin build` — compiles the Spin application to a WebAssembly component (`.wasm`).  
-- `spin up [--listen <host:port>]` — runs the application locally, exposing an HTTP server (default `0.0.0.0:3000`).  
-- `spin aka login` — initiates the Akamai Functions authentication flow.  
-- `spin aka deploy` — deploys the current Spin application to Akamai Functions; prompts for an app name and confirmation.  
-- `spin plugin install aka` — installs the `aka` plugin for interacting with Akamai Functions.  
-- `spin plugins update` / `spin plugins upgrade aka` — updates all Spin plugins and upgrades the `aka` plugin to the latest version.  
+- `import { AutoRouter } from 'itty-router'` — imports the AutoRouter class used to create a router instance.  
+- `AutoRouter()` — creates a new router object.  
+- `router.get(path, handler)` — registers a GET route. The first route that matches the request path is used.  
+- `router.post(path, handler)` — (available via itty‑router) registers a POST route.  
+- `router.put(path, handler)` — (available via itty‑router) registers a PUT route.  
+- `router.delete(path, handler)` — (available via itty‑router) registers a DELETE route.  
+- `router.all(path, handler)` — (available via itty‑router) registers a route for any HTTP method.  
+- `router.fetch(request)` — processes an incoming `Request` object and returns a `Response`.  
+- `addEventListener('fetch', async (event) => { event.respondWith(router.fetch(event.request)); })` — registers the entry point for the Edge runtime; each incoming HTTP request triggers this listener.
 
 ## Required Patterns
-**Pattern: Basic HTTP Router with AutoRouter**
+**Basic AutoRouter pattern**
 ```js
 import { AutoRouter } from 'itty-router';
-const router = AutoRouter();
+let router = AutoRouter();
 
+// Define routes (order matters)
 router
   .get("/", () => new Response("hello universe"))
-  .get("/hello/:name", ({ name }) => `Hello, ${name}!`);
+  .get('/hello/:name', ({ name }) => `Hello, ${name}!`);
 
+// Edge entry point
 addEventListener('fetch', async (event) => {
   event.respondWith(router.fetch(event.request));
 });
 ```
 
-**Pattern: Local Development Server**
-```bash
-# Build the component
-spin build
-
-# Run locally (default port 3000)
-spin up
-
-# Or specify a custom port
-spin up --listen 127.0.0.1:3001
-```
-
-**Pattern: Deploy to Akamai Functions**
-```bash
-# Authenticate (once per session)
-spin aka login   # follow the printed link and complete auth
-
-# Deploy the current workspace
-spin aka deploy   # will prompt for app name and confirmation
+**Middleware pattern (any route that does not return a Response is treated as middleware)**
+```js
+router
+  .get('/protected/*', async ({ request }) => {
+    // No explicit return → treated as middleware
+    const auth = request.headers.get('Authorization');
+    if (!auth) return new Response('Unauthorized', { status: 401 });
+    // continue to next matching route
+  })
+  .get('/protected/data', () => new Response('Secret data'));
 ```
 
 ## Common Mistakes and Gotchas
-- Unlike generic Express‑style routers, **Akamai Functions** route ordering matters – the first matching route is used; later routes are ignored.  
-- Unlike a typical fetch handler, **any route that does not return a value is treated as middleware** and will continue to the next matching route.  
-- Unlike a generic HTTP server, **unmatched routes automatically return a 404** response; you must explicitly add a catch‑all route if you want custom handling.  
-- Unlike standard Node.js scripts, **the `spin up` command binds to `0.0.0.0:3000` by default**, which may conflict with other services; always specify `--listen` when the default port is occupied.  
+- **Unlike typical Express.js apps, Akamai Functions route ordering matters; the first matching route is used.**  
+- **Unlike standard Service Worker code, any route handler that does **not** return a `Response` (or a value that can be coerced into one) is treated as middleware, not a terminal response.**  
+- **Unlike a generic Node.js HTTP server, you must use `addEventListener('fetch', …)` and call `event.respondWith(router.fetch(event.request))` to send a response.**  
+- **Unlike a local development server, the compiled Spin app runs inside a WebAssembly sandbox; only the APIs listed above are guaranteed to be available at runtime.**  
 
 ## Version and Compatibility Notes
-- Node.js **v22** (or newer) is the recommended runtime version for building JavaScript Spin apps.  
-- The `aka` plugin requires the **public preview** of Akamai Functions; access must be granted via the onboarding form.  
-- The Spin installer script (`fwf_install.sh`) and the `aka` plugin are currently **Linux amd64‑only**.  
-- The `http-js` template generates code that depends on the **itty‑router** library; ensure it is listed in `package.json`.  
-- The `spin aka deploy` command reads the `spin.toml` file in the current directory to determine deployment configuration.  
+- **Node.js version:** The quickstart recommends Node.js **v22** or newer for building JavaScript Spin apps.  
+- **Akamai Functions preview:** Access requires enrollment in the public preview and successful `spin aka login`.  
+- **Spin plugin:** The `aka` plugin must be installed (`spin plugin install aka`) and kept up‑to‑date (`spin plugins update && spin plugins upgrade aka`).  
+- **Spin CLI commands:** `spin new -E akamai-functions -t http-js …`, `spin build`, `spin up`, and `spin aka deploy` are the required workflow commands; they rely on the `spin.toml` manifest in the project root.  

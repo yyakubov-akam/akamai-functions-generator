@@ -4,7 +4,7 @@
 > Compiled from `/docs/techdocs-akamai-com/`. Scan top-to-bottom to answer:
 > *"what can I use, what are the exact signatures, what must I never do."*
 
-Akamai Functions runs **Spin applications compiled to WebAssembly** with SDK support for **Rust, Go, JavaScript, and Python**. The platform is currently **limited-availability (public preview)**.
+Akamai Functions runs **Spin applications compiled to WebAssembly** with SDK support for **Rust, Go, JavaScript, and Python**. The platform is currently **limited-availability (public preview)**. Requires **Spin CLI >= v3.0.0** and `spin-aka` plugin **v0.7.0** or later. Build tooling requires **Node.js v22+**.
 
 ---
 
@@ -14,11 +14,12 @@ Every constraint below is a hard rule. Violations produce the listed runtime con
 
 ### 1.1 Execution / sandbox
 
-- **NEVER use Node.js standard APIs** such as `fs`, `net`, `child_process`, `process`, or `require`. → They are not available in the WebAssembly sandbox; calls fail at runtime / module-load (`ReferenceError` or "not supported"). All I/O must go through streams or network calls.
+- **NEVER use Node.js standard APIs** such as `fs`, `net`, `child_process`, `process`, or `require`. → Not available in the WebAssembly sandbox; calls fail at runtime / module-load (`ReferenceError` or "not supported"). All I/O must go through streams or network calls.
 - **NEVER use dynamic `import()` at runtime.** → Only static ES module `import` statements at the top of the file are supported; dynamic imports fail to resolve.
 - **NEVER read configuration from `process.env`.** → `process` is undefined. Use `Variables.get(name)` (Spin variables) instead.
 - **NEVER write logs to a file.** → Only output written to `stdout` / `stderr` is captured by `spin aka logs`. File logs are silently dropped.
 - **NEVER rely on runtime configuration changes.** → Runtime configuration is not supported; values are fixed at deploy time.
+- **NEVER use browser-only APIs** (`window`, `document`, DOM APIs, `WebGL`). → The runtime provides no browser environment.
 
 ### 1.2 Triggers / interfaces
 
@@ -34,7 +35,7 @@ Every constraint below is a hard rule. Violations produce the listed runtime con
 
 - **NEVER use `localhost` or short service names to call another Spin application.** → Resolution fails. Always use the full public URL, e.g. `https://<app-id>.fwf.app`.
 - **NEVER make outbound calls to hosts not listed in `allowed_outbound_hosts` (in `spin.toml`).** → The runtime blocks the request and the SDK call fails. Each external host (S3 endpoint, Postgres host, etc.) must be explicitly allowed.
-- The `allowed_outbound_hosts` entries must use exact protocol + port (e.g. `postgres://...:5432`, `https://...`). Wildcard pattern requires a trailing dot (`'https://.'`).
+- The `allowed_outbound_hosts` entries must use exact protocol + port (e.g. `postgres://...:5432`, `https://...`). Wildcard pattern: trailing dot (`'https://.'`).
 
 ### 1.4 Quotas and limits (silent or hard failures)
 
@@ -47,7 +48,7 @@ Every constraint below is a hard rule. Violations produce the listed runtime con
 | KV total storage per app (all stores) | **2 GB** | Write rejected |
 | KV read RPS per app | **1,000 RPS** | Throttled |
 | KV write RPS per app | **50 RPS** | Throttled |
-| KV value size | **1 MB** (also documented as 1 MiB) | Write rejected |
+| KV value size | **1 MiB** | Write rejected |
 | KV key size | **8 KB** | Write rejected |
 
 ### 1.5 Key-value store specifics
@@ -71,6 +72,7 @@ Only the following NPM packages are guaranteed available in JS/TS apps:
 - `@spinframework/spin-postgres`
 - `@spinframework/spin-kv`
 - `@aws-sdk/client-s3`
+- `uuid` (including `v4` and `validate` exports)
 
 Importing any other third-party module may fail at build or runtime.
 
@@ -84,9 +86,14 @@ Importing any other third-party module may fail at build or runtime.
 
 ### 1.9 Project scaffolding (JS/TS apps)
 
-- **NEVER hand-write `spin.toml`, `package.json`, `build.mjs`, or the build script for a JS/TS app.** → Always scaffold via `spin new -t http-js --accept-defaults <app-name>`. The template generates an **esbuild** step (`build.mjs`) that bundles `src/index.js` + everything under `node_modules` into a single ESM bundle at `build/bundle.js`, and then invokes the **`j2w`** componentizer to produce `dist/<app-name>.wasm`. Without that bundling step, the componentizer cannot resolve packages like `itty-router` and may not parse ES `import` syntax at all.
-- **NEVER set `scripts.build` in `package.json` to invoke a JS→Wasm converter (`spin js2wasm`, `j2w`, etc.) directly on `src/index.js`.** → The legacy `spin js2wasm` plugin in particular traps during Wizer pre-initialization with `Uncaught SyntaxError: expecting '('` at the first `import` keyword and produces `Error: Couldn't create wasm from input`.
+- **NEVER hand-write `spin.toml`, `package.json`, `build.mjs`, or the build script for a JS/TS app.** → Always scaffold via `spin new -E akamai-functions -t http-js --accept-defaults <app-name>`. The template generates an **esbuild** step (`build.mjs`) that bundles `src/index.js` + everything under `node_modules` into a single ESM bundle at `build/bundle.js`, then invokes the **`j2w`** componentizer to produce `dist/<app-name>.wasm`. Without that bundling step, the componentizer cannot resolve packages like `itty-router` and may not parse ES `import` syntax at all.
+- **NEVER set `scripts.build` in `package.json` to invoke a JS→Wasm converter (`spin js2wasm`, `j2w`, etc.) directly on `src/index.js`.** → The legacy `spin js2wasm` plugin traps during Wizer pre-initialization with `Uncaught SyntaxError: expecting '('` at the first `import` keyword and produces `Error: Couldn't create wasm from input`.
 - After scaffolding, modify only: `src/index.js` (your code), `spin.toml`'s `[variables]` / `key_value_stores` / `allowed_outbound_hosts` entries on the component, and `package.json` `dependencies`. Do not touch `build.mjs`, `scripts.build`, or `[component.<name>.build]`.
+
+### 1.10 Property Manager integration
+
+- **NEVER include `https://` or a trailing slash** in the Property Manager Origin Server Hostname field. → The platform rejects the configuration; supply only the bare hostname.
+- **NEVER route a path prefix to the function without adding a Modify Outgoing Request Path behavior** to strip that prefix. → The function receives the full path including the prefix and will not match its defined routes.
 
 ---
 
@@ -118,17 +125,23 @@ import { Postgres } from '@spinframework/spin-postgres';
 
 ```js
 import { openDefault } from '@spinframework/spin-kv';
-// or, for a non-default label (only `"default"` is currently provisioned):
+// or, for non-default label (only "default" is currently provisioned):
 import { Kv } from '@spinframework/spin-kv';
 ```
 
 ### 2.5 S3-compatible object store (e.g. Linode Object Storage)
 
-```ts
+```js
 import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 ```
 
-### 2.6 INCORRECT patterns (do not use)
+### 2.6 UUID
+
+```js
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
+```
+
+### 2.7 INCORRECT patterns (do not use)
 
 ```js
 // ❌ CommonJS — `require` is undefined in the Spin runtime
@@ -146,11 +159,11 @@ const mod = await import('./helper.js');
 const conn = process.env.PG_CONNECTION_STRING;
 ```
 
-### 2.7 Build-time bundling is required
+### 2.8 Build-time bundling is required
 
-ES `import` statements only work because the scaffolded `build.mjs` (esbuild, see §1.9) inlines all imported modules into a single bundle at `build/bundle.js` prior to `j2w`. If that bundling step is skipped, every `import` line becomes a runtime parse error in the JS→Wasm converter. This is a property of the build pipeline, not the runtime — it is the reason §1.9 forbids hand-rolling the build script.
+ES `import` statements only work because the scaffolded `build.mjs` (esbuild) inlines all imported modules into a single bundle at `build/bundle.js` prior to `j2w`. If that bundling step is skipped, every `import` line becomes a runtime parse error in the JS→Wasm converter.
 
-### 2.8 Handler-scoped vs module-scoped
+### 2.9 Handler-scoped vs module-scoped
 
 - `openDefault()` / `Kv.open(label)` / `Postgres.open(connectionString)` / `new S3Client(...)` **must be called inside a request handler** (not at module top level). They depend on per-request capabilities.
 - `AutoRouter()`, `new TextDecoder()`, `new TextEncoder()`, and constant headers may be declared at module scope.
@@ -213,6 +226,24 @@ addEventListener('fetch', async (event) => {
 });
 ```
 
+Multi-variable validation pattern (S3 / multi-config):
+
+```js
+addEventListener('fetch', async (event) => {
+  const endpoint        = Variables.get("endpoint");
+  const accessKeyId     = Variables.get("access_key_id");
+  const secretAccessKey = Variables.get("secret_access_key");
+  const bucketName      = Variables.get("bucket_name");
+  const region          = Variables.get("region");
+
+  if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName || !region) {
+    event.respondWith(new Response("Application not configured correctly", { status: 500 }));
+    return;
+  }
+  event.respondWith(router.fetch(event.request, { config: { endpoint, accessKeyId, secretAccessKey, bucketName, region } }));
+});
+```
+
 ### 3.3 Cron-triggered functions (Tech Preview)
 
 A cron job invokes an existing HTTP route at the scheduled time. The handler is still the standard `fetch` listener; the cron schedule and target path are configured outside the code via `spin aka app cron create`.
@@ -224,8 +255,7 @@ A cron job invokes an existing HTTP route at the scheduled time. The handler is 
 ### 4.1 Router — `itty-router`
 
 ```ts
-AutoRouter()
-  : Router
+AutoRouter(): Router
 
 router.get(path: string, handler: (request, context?) => Response | Promise<Response>): Router
 router.post(path: string, handler: (request, context?) => Response | Promise<Response>): Router
@@ -234,6 +264,8 @@ router.delete(path: string, handler: (request, context?) => Response | Promise<R
 router.all(path: string, handler: (request, context?) => Response | Promise<Response>): Router
 
 router.fetch(request: Request, context?: object): Promise<Response>
+
+json(data: any): Response   // returns JSON response with Content-Type: application/json
 ```
 
 Behavior:
@@ -242,6 +274,7 @@ Behavior:
 - A handler that **returns no value is treated as middleware** and execution continues to the next matching route.
 - Unmatched requests **automatically return 404** unless a catch-all (`router.all("*", ...)`) is registered.
 - The second argument to `router.fetch(request, context)` is forwarded as the second argument to every route handler — use this to inject per-request config (DB connection string, S3 config, etc.).
+- Path parameters (e.g. `:key`) are available on the destructured first argument: `({ params }) => params.key` or `({ key }) => key`.
 
 ### 4.2 Standard fetch globals
 
@@ -251,6 +284,8 @@ new Request(input, init?): Request
 addEventListener('fetch', (event: FetchEvent) => void): void
 event.respondWith(response: Response | Promise<Response>): void
 fetch(input: RequestInfo, init?: RequestInit): Promise<Response>  // outbound; allowed_outbound_hosts required
+
+request.arrayBuffer(): Promise<ArrayBuffer>   // read raw request body
 
 new TextDecoder([label?, options?])
 textDecoder.decode(buffer: ArrayBuffer | TypedArray, options?: { stream?: boolean }): string
@@ -299,6 +334,7 @@ connection.query(sql: string, params: any[]): { rows: any[] }
   // For SELECT. Returns an object with a `rows` array.
 ```
 
+- Both `execute` and `query` are **synchronous** — do **not** `await` them.
 - The host (and port `5432`) must appear in `allowed_outbound_hosts` as `postgres://<host>:5432`.
 - Open the connection inside the handler; pass the connection string via the router context.
 
@@ -318,9 +354,8 @@ new ListObjectsV2Command(input: { Bucket: string }): Command
 new GetObjectCommand(input: { Bucket: string; Key: string }): Command
 
 s3.send(command): Promise<{
-  Contents?: Array<{ Key?: string; ... }>;   // for ListObjectsV2Command
-  Body?: ReadableStream;                      // for GetObjectCommand
-  // ...
+  Contents?: Array<{ Key?: string; }>;   // for ListObjectsV2Command
+  Body?: ReadableStream;                  // for GetObjectCommand
 }>
 ```
 
@@ -331,12 +366,24 @@ The `Body` returned by `GetObjectCommand` is a `ReadableStream` and can be:
 ### 4.7 `json()` helper (from `itty-router`)
 
 ```ts
-json(data: any): Response  // returns a Response with JSON-encoded body and content-type
+json(data: any): Response  // returns a Response with JSON-encoded body and Content-Type: application/json
 ```
 
-### 4.8 CLI — `spin aka` (Spin >= v3.0.0, plugin v0.7.0)
+### 4.8 UUID — `uuid`
 
-Equivalent JS object form is shown for reference; in practice these are shell commands.
+```ts
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid';
+
+uuidv4(): string                    // generates a new UUID v4 string
+uuidValidate(str: string): boolean  // returns true if str is a valid UUID
+```
+
+### 4.9 Logging
+
+- Write to `stdout` via `console.log(...)` or `console.error(...)` → captured by `spin aka logs`.
+- No file-based logging; no programmatic log retrieval API inside the function.
+
+### 4.10 CLI — `spin aka` (Spin >= v3.0.0, plugin v0.7.0)
 
 ```
 spin aka login                       # Log into Akamai Functions (session ~30 days idle)
@@ -374,7 +421,7 @@ Duration syntax (`--since`, `--usage-since`): `s` (seconds), `m`, `h`, `d`. ISO-
 
 ### 5.1 Object × event-handler availability
 
-Akamai Functions has a **single event handler** (`fetch`). The "available" matrix is therefore trivial — every supported object is callable from inside the `fetch` listener, and **nowhere else**.
+Akamai Functions has a **single event handler** (`fetch`). Every supported object is callable from inside the `fetch` listener, and **nowhere else**.
 
 | Object / API | `fetch` handler | Module top level |
 |---|---|---|
@@ -403,7 +450,7 @@ router (AutoRouter)
         ├── openDefault()                   → Store                      (KV)
         │     └── store.exists / getJson / setJson
         ├── Postgres.open(connectionString) → Connection                 (PostgreSQL)
-        │     └── conn.query / conn.execute
+        │     └── conn.query / conn.execute  [synchronous — no await]
         ├── new S3Client({ region, endpoint, credentials })              (S3-compatible)
         │     └── s3.send( new ListObjectsV2Command | new GetObjectCommand )
         │             └── result.Body (ReadableStream)
@@ -420,7 +467,7 @@ router (AutoRouter)
 | `openDefault()` | `key_value_stores = ["default"]` on the component |
 | `Postgres.open(...)` | `allowed_outbound_hosts = ["postgres://<host>:5432"]` |
 | `new S3Client({ endpoint, ... })` then `s3.send(...)` | `allowed_outbound_hosts` includes the S3 endpoint (e.g. `"https://.<region>.linodeobjects.com"` or `"https://."`) |
-| outbound `fetch(url, ...)` | `allowed_outbound_hosts` includes the target host (and inter-Function calls must use full `https://<app-id>.fwf.app`) |
+| outbound `fetch(url, ...)` | `allowed_outbound_hosts` includes the target host; inter-Function calls must use full `https://<app-id>.fwf.app` |
 
 ### 5.4 Module → API → consequence-on-misuse
 
@@ -609,7 +656,7 @@ function handleGetValue(key) {
 ### 6.12 Exceeding KV value or key size
 
 ```js
-// ❌ WRONG — value > 1 MB or key > 8 KB
+// ❌ WRONG — value > 1 MiB or key > 8 KB
 store.setJson('huge', new Array(10_000_000).fill('x'));
 
 // ✅ CORRECT — chunk large payloads or store in object storage
@@ -621,7 +668,7 @@ store.setJson('huge', new Array(10_000_000).fill('x'));
 ### 6.13 Bundle / response size
 
 - Bundle > **50 MiB** → deploy rejected.
-- Response body > **10 MiB** → response truncated/rejected. Stream large bodies via `ReadableStream` to stay within per-request limits where possible.
+- Response body > **10 MiB** → response truncated/rejected. Stream large bodies via `ReadableStream` to stay within per-request limits.
 
 ---
 
@@ -657,7 +704,7 @@ spin aka app list --account-name "My Account"
 // ❌ WRONG — runs a JS→Wasm converter directly on ES-module source; no bundler
 { "scripts": { "build": "spin js2wasm -o target/app.wasm src/index.js" } }
 
-// ✅ CORRECT — verbatim from `spin new -t http-js --accept-defaults <name>`
+// ✅ CORRECT — verbatim from `spin new -E akamai-functions -t http-js --accept-defaults <name>`
 //   (esbuild bundles via build.mjs, then j2w componentizes the bundle)
 { "scripts": {
   "build": "node build.mjs && mkdirp dist && j2w -i build/bundle.js --initLocation http://<app-name>.localhost -o dist/<app-name>.wasm"
@@ -683,8 +730,50 @@ Error: the `wizer.initialize` function trapped
 Error: Couldn't create wasm from input
 ```
 
-**Why it fails:** the `js2wasm` plugin embeds a QuickJS engine that parses input as a *classic script*, not an ES module, and has no module resolver for `node_modules`. The first `import` keyword in `src/index.js` triggers `SyntaxError: expecting '('` (QuickJS expected the dynamic-import expression `import(...)`). The scaffolded template avoids this by bundling with esbuild first and then componentizing the single-file bundle with `j2w`.
+**Why it fails:** the `js2wasm` plugin embeds a QuickJS engine that parses input as a *classic script*, not an ES module, and has no module resolver for `node_modules`. The first `import` keyword triggers `SyntaxError: expecting '('`. The scaffolded template avoids this by bundling with esbuild first and then componentizing the single-file bundle with `j2w`.
 
-**Fix:** delete the hand-rolled `package.json` / `spin.toml` / build script, run `spin new -t http-js --accept-defaults <app-name>` in a clean directory, then copy your `src/index.js` over the scaffolded one and re-add only the `dependencies` / `[variables]` / `key_value_stores` / `allowed_outbound_hosts` entries your code requires.
+**Fix:** delete the hand-rolled files, run `spin new -E akamai-functions -t http-js --accept-defaults <app-name>` in a clean directory, then copy your `src/index.js` over the scaffolded one and re-add only the `dependencies` / `[variables]` / `key_value_stores` / `allowed_outbound_hosts` entries your code requires.
 
 ---
+
+### 6.17 Awaiting synchronous Postgres calls
+
+```js
+// ❌ WRONG — Postgres API is synchronous; await is a no-op and can hide errors
+const result = await connection.query(SQL, []);
+
+// ✅ CORRECT — call synchronously
+const result = connection.query(SQL, []);
+const rows = result.rows;
+```
+**Symptom:** no immediate error, but incorrect behavior if surrounding async flow depends on a resolved Promise that was never actually async.
+
+---
+
+### 6.18 Property Manager origin hostname includes scheme or trailing slash
+
+```
+# ❌ WRONG
+Origin Server Hostname: https://myapp.fwf.app/
+
+# ✅ CORRECT — bare hostname only
+Origin Server Hostname: myapp.fwf.app
+```
+**Symptom:** Property Manager rejects the configuration or routes requests to a broken origin.
+
+---
+
+### 6.19 Missing path-prefix strip in Property Manager
+
+```
+# ❌ WRONG — routing /hello/* to function without stripping the prefix
+# Function receives /hello/world and has no route for it → 404
+
+# ✅ CORRECT — add "Modify Outgoing Request Path" behavior:
+#   Action: Replace Part of the incoming path
+#   Find what: /hello/
+#   Replace with: /
+#   Occurrences: First occurrence only
+#   Keep the query parameters: Yes
+```
+**Symptom:** function receives the full original path including prefix; all routes return 404.
