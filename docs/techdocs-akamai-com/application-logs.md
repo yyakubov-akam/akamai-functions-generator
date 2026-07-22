@@ -1,42 +1,38 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/application-logs
-Date: 2026-06-30T09:40:41.938098
+Date: 2026-07-22T11:15:02.804684
 Model: gpt-oss:120b-cloud
 ## Runtime Constraints
-- Do not write log data to files; only `stdout` and `stderr` are captured by Akamai Functions.
-- Do not rely on any logging library that writes to locations other than `stdout`/`stderr`.
-- The `spin aka logs` command must be used to retrieve logs; there is no programmatic API for log retrieval inside the function.
+- Do not rely on log files; Akamai Functions captures **only** data written to `stdout` and `stderr`.
+- Log output is streamed to `stdout` by default; there is no separate log storage mechanism.
+- Verbose spin error messages are **not** emitted unless the `--verbose` flag is supplied to the `spin aka logs` command.
 
 ## Supported APIs and Syntax
-- `spin aka logs` — CLI command that streams all `stdout`/`stderr` output from the linked application to the terminal.  
-- `spin aka logs --app-name <app>` — Retrieves logs for a specific application without linking the workspace.  
-- `spin aka logs --verbose` — Enables verbose Spin error messages in the log stream.  
+- `spin aka logs` — Retrieves logs for the Spin application linked to the current workspace.  
+- `spin aka logs --app-name <app-name>` — Retrieves logs for the specified application (one‑time connection).  
+- `spin aka logs --verbose` — Enables verbose spin error messages in the log output.  
+- `spin aka link` — Links the current workspace to an application running on Akamai Functions.  
+- `log/slog` (Go) — Standard Go logging package used by Spin applications; any output from this package ends up on `stdout`/`stderr` and is captured by Akamai Functions.
 
 ## Required Patterns
-**Pattern: Write logs to stdout/stderr**  
+**Pattern: Emit logs via standard output streams**  
 ```js
-// Example using console (writes to stdout)
-console.log('INFO GET /hello: Handled by handle_hello');
-
-// Example using console.error (writes to stderr)
+// JavaScript (Node.js) example
+console.log('INFO GET /hello: Handled by handle_hello func');
 console.error('WARN Greet invoked with invalid payload. Will respond with HTTP 400');
 ```
 
-**Pattern: Retrieve logs via CLI**  
-```bash
-# Default: logs for linked application
-spin aka logs
+```go
+// Go example (using log/slog)
+import "log/slog"
 
-# One‑time fetch for a specific app
-spin aka logs --app-name hello-akamai-functions
-
-# Verbose error output
-spin aka logs --verbose
+slog.Info("GET https://example.com/hello: Handled by handle_hello func")
+slog.Warn("Greet invoked with invalid payload. Will respond with HTTP 400")
 ```
+*All messages written to `stdout` or `stderr` are automatically captured and displayed by `spin aka logs`.*
 
 ## Common Mistakes and Gotchas
-- Unlike typical Node.js environments where you might use file‑based loggers, Akamai Functions **only captures** output written to `stdout` and `stderr`.
-- Unlike some platforms that provide a logging SDK, Akamai Functions **does not expose** a programmatic logging API; you must rely on standard console streams.
-- Unlike local development where logs appear in the terminal, **logs are not automatically displayed** when running `spin up`; you must consult the observability guide or use the `spin aka logs` command after deployment.
+- **Unlike typical server environments**, Akamai Functions does **not** write logs to files; only `stdout`/`stderr` output is captured.  
+- **Unlike default CLI behavior**, verbose spin error messages are **not** shown unless the `--verbose` flag is added to `spin aka logs`.  
 
 ## Version and Compatibility Notes
-- No feature flags or version constraints are mentioned for log capture; the behavior is consistent across current Akamai Functions releases.
+*No version‑specific flags or rollout limitations are mentioned in the source document.*

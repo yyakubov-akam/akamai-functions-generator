@@ -24,18 +24,21 @@ Every constraint below is a hard rule. Violations produce the listed runtime con
 ### 1.2 Triggers / interfaces
 
 - **NEVER define custom triggers.** → Not supported. Only the built-in HTTP trigger is available.
-- **NEVER use the Redis trigger.** → Not supported on Akamai Functions.
+- **NEVER use the Redis trigger.** → Not supported on Akamai Functions. (An *outbound* Redis client connection is a separate, lower-confidence feature — see §4.11 — but the Redis trigger is not.)
 - **NEVER use SQLite storage.** → Not supported.
 - **NEVER use `wasi-blobstore`.** → Not supported.
 - **NEVER use `wasi-messaging`.** → Not supported.
-- **NEVER use the `wasi:keyvalue/atomic` interface.** → Not supported; only `wasi:keyvalue/store` and `wasi:keyvalue/batch` are available.
+- **NEVER use the `wasi:keyvalue/atomic` interface.** → Not supported; only `wasi:keyvalue/store` and `wasi:keyvalue/batch` (2024-10-17 snapshot) are available.
+- **Serverless AI access is LIMITED.** → Only limited access to Serverless AI is available; do not assume full model access.
 - **Cron-job scheduling is Tech Preview / UNSTABLE.** → Do not use in production; commands may change without notice.
+
+Supported host interfaces are snapshot-pinned: `wasi-config` at the **2024-09-27** snapshot (`wasi:config/get(name)`); `wasi:keyvalue/store` and `wasi:keyvalue/batch` at the **2024-10-17** snapshot. Other WASI modules are rejected.
 
 ### 1.3 Inter-service / outbound networking
 
 - **NEVER use `localhost` or short service names to call another Spin application.** → Resolution fails. Always use the full public URL, e.g. `https://<app-id>.fwf.app`.
 - **NEVER make outbound calls to hosts not listed in `allowed_outbound_hosts` (in `spin.toml`).** → The runtime blocks the request and the SDK call fails. Each external host (S3 endpoint, Postgres host, etc.) must be explicitly allowed.
-- The `allowed_outbound_hosts` entries must use exact protocol + port (e.g. `postgres://...:5432`, `https://...`). Wildcard pattern: trailing dot (`'https://.'`).
+- The `allowed_outbound_hosts` entries must use exact protocol + port (e.g. `postgres://...:5432`, `https://...`). To allow any HTTPS host, use the wildcard pattern `'https://*'`; prefer listing the specific host where possible.
 
 ### 1.4 Quotas and limits (silent or hard failures)
 
@@ -76,13 +79,17 @@ Only the following NPM packages are guaranteed available in JS/TS apps:
 
 Importing any other third-party module may fail at build or runtime.
 
-### 1.8 CLI constraints (`spin aka`)
+### 1.8 CLI constraints (`spin aka`, Spin ≥ v3.0.0, plugin v0.7.0)
 
-- **NEVER set `--expiration-days` greater than `90`** on `auth token create`. → CLI rejects the value.
-- **NEVER pass both `--account-id` and `--account-name`** simultaneously. → They are mutually exclusive; CLI ignores both and falls back to current context.
-- **NEVER request `--usage-since` outside `5m`–`7d`** (inclusive). → Rejected.
-- **NEVER omit `--schedule`** when creating a cron job. → Required.
-- **NEVER omit `<NAME>`** for `cron delete`. → Required positional argument.
+- **NEVER set `--expiration-days` greater than `90`** on `auth token create`. → Values above 90 are rejected. Default is `30`.
+- **NEVER request `--usage-since` outside `5m`–`7d`** (inclusive) on `app status`. → Rejected. Default is `7d`.
+- **NEVER omit `--schedule`** when creating a cron job (`cron create` / `app cron create`). → Required.
+- **NEVER omit `<NAME>`** for `cron delete` / `app cron delete`. → Required positional argument.
+- **`auth token delete` and `auth token regenerate` identify the token by `--id <ID>`, not by name.** → Passing a bare name will not match.
+- **`--build` is ignored for remote apps** on `app deploy` / `deploy`. → Only local apps trigger a `spin build`. (Set `SPIN_ALWAYS_BUILD` to force a build.)
+- **When `--variable` is repeated for the same key, the last occurrence wins.** → Earlier values are silently overridden.
+- **`--account-id` and `--account-name` select an account; supply at most one.** → If neither is supplied, the current account context is used.
+- **`-f, --from <PATH>` defaults to `./spin.toml`** when omitted.
 
 ### 1.9 Project scaffolding (JS/TS apps)
 
@@ -92,8 +99,9 @@ Importing any other third-party module may fail at build or runtime.
 
 ### 1.10 Property Manager integration
 
-- **NEVER include `https://` or a trailing slash** in the Property Manager Origin Server Hostname field. → The platform rejects the configuration; supply only the bare hostname.
+- **NEVER include `https://` or a trailing slash** in the Property Manager Origin Server Hostname field. → The platform rejects the configuration; supply only the bare hostname (the deploy URL is a wildcard, e.g. `…aka.akamai.tech (wildcard)`).
 - **NEVER route a path prefix to the function without adding a Modify Outgoing Request Path behavior** to strip that prefix. → The function receives the full path including the prefix and will not match its defined routes.
+- **NEVER leave Forward Host Header at its default** when fronting a function. → Set **Forward Host Header** to **Origin Hostname**; otherwise the upstream Spin app may reject the request because the Host header does not match its expected origin.
 
 ---
 
@@ -306,6 +314,7 @@ Variables.get(name: string): string
 - Returns the value of a variable declared under `[variables]` in `spin.toml`.
 - Returns falsy (empty string) when the variable is missing/empty — the handler is responsible for guarding (typically responding `500`).
 - Variables marked `secret = true` are decrypted on access.
+- Declare a mandatory variable with `name = { required = true }`; declare a default with `name = { default = "..." }`. Deploy-time values are supplied via `--variable name=value` (or `@file.json` / `@file.toml`).
 
 ### 4.4 Key-Value Store — `@spinframework/spin-kv`
 
@@ -383,37 +392,78 @@ uuidValidate(str: string): boolean  // returns true if str is a valid UUID
 - Write to `stdout` via `console.log(...)` or `console.error(...)` → captured by `spin aka logs`.
 - No file-based logging; no programmatic log retrieval API inside the function.
 
-### 4.10 CLI — `spin aka` (Spin >= v3.0.0, plugin v0.7.0)
+### 4.10 CLI — `spin aka` (Spin ≥ v3.0.0, plugin v0.7.0, released 2026-03-20)
 
+All commands require Spin ≥ v3.0.0. Cron sub-commands are UNSTABLE / Tech Preview.
+
+**Auth**
 ```
-spin aka login                       # Log into Akamai Functions (session ~30 days idle)
-spin aka info                        # Print user and workspace information
-spin aka deploy [-f <PATH>] [--variable KEY=VALUE|@FILE.json|@FILE.toml]...
-                                     # Deploy current app (alias of `app deploy`).
-                                     # `-f, --from` defaults to ./spin.toml.
-spin aka logs [--app-name <NAME>] [--verbose] [--since <DURATION>] [--max-lines <N>]
-                                     # Default --since is 7 days. Default --max-lines is 10.
-spin aka app delete [--no-confirm]
-spin aka app link
-spin aka app unlink
-spin aka app list
-spin aka app status
-spin aka app history
-spin aka app cron create --schedule "<CRON>" [--name <NAME>] [--path-and-query <PATH>]
-                                     # UNSTABLE / Tech Preview. --schedule REQUIRED.
-spin aka app cron delete <NAME> [--no-confirm]
-spin aka app cron list
-spin aka auth login
-spin aka auth token create --name <NAME> [--description <TEXT>] [--expiration-days <DAYS>] [--short]
+spin aka auth login [--token <TOKEN>]
+spin aka auth token create --name <NAME> [--description <TEXT>] [--expiration-days <DAYS>] [--format <FORMAT>] [--short]
                                      # --name REQUIRED. --expiration-days default 30, max 90.
-spin aka auth token delete <NAME> [--no-confirm]
-spin aka auth token list
-spin aka auth token regenerate <NAME>
+spin aka auth token delete --id <ID> [--no-confirm]
+spin aka auth token list [--format <FORMAT>] [--verbose]
+spin aka auth token regenerate --id <ID>
+```
+
+**App lifecycle**
+```
+spin aka app list   [--account-id <ID>] [--account-name <NAME>] [--format <FORMAT>] [--verbose]
+spin aka app link   [--account-id <ID>] [--account-name <NAME>] [--app-id <ID>] [--app-name <NAME>] [--from <PATH>]
+spin aka app unlink [--account-id <ID>] [--account-name <NAME>] [--from <PATH>]
+spin aka app deploy [--account-id <ID>] [--account-name <NAME>] [--app-id <ID>] [--build] [--cache-dir <DIR>]
+                    [--create-name <NEW_APP_NAME>] [--from <PATH>] [--no-confirm] [--skip-readiness-check]
+                    [--variable <KEY=VALUE|@FILE.json|@FILE.toml>]...
+                                     # --build ignored for remote apps. Duplicate --variable key: last wins.
+spin aka app delete [--account-id <ID>] [--account-name <NAME>] [--app-id <ID>] [--app-name <NAME>] [--from <PATH>] [--no-confirm]
+spin aka app status [--account-id <ID>] [--account-name <NAME>] [--app-id <ID>] [--app-name <NAME>] [--from <PATH>]
+                    [--format <FORMAT>] [--usage-since <USAGE_SINCE>]
+                                     # --usage-since default 7d, range 5m–7d.
+spin aka deploy [...same flags as `app deploy`]   # alias; --from defaults to ./spin.toml
+```
+
+**Logs** (identical flag set on `spin aka logs` and `spin aka app logs`)
+```
+spin aka logs [--account-id <ID>] [--account-name <NAME>] [--app-id <ID>] [--app-name <NAME>]
+              [--component-id <ID>] [--deployment-version <VERSION>] [--from <PATH>]
+              [--max-lines <N>] [--region <REGION>] [--since <SINCE>] [--verbose]
+                                     # --verbose required to emit verbose Spin error messages.
+```
+
+**Cron** (UNSTABLE — both `spin aka cron …` and `spin aka app cron …` exist with the same flags)
+```
+spin aka app cron create --schedule "<CRON>" [--name <NAME>] [--path-and-query <PATH_AND_QUERY>]
+                    [--account-id <ID>] [--account-name <NAME>] [--app-id <ID>] [--app-name <NAME>] [--from <PATH>]
+                                     # --schedule REQUIRED. Omit --name to auto-generate a unique name.
+spin aka app cron delete <NAME> [--account-id <ID>] [--account-name <NAME>] [--app-id <ID>] [--app-name <NAME>] [--from <PATH>]
+spin aka app cron list   [--account-id <ID>] [--account-name <NAME>] [--app-id <ID>] [--app-name <NAME>] [--from <PATH>]
+```
+
+**Misc**
+```
+spin aka info [--format <FORMAT>]    # Print user and workspace information
+spin aka send-feedback               # Open a feedback submission (no options)
+spin aka login                       # Device-code OAuth login (session expires after 30 days idle)
 ```
 
 Duration syntax (`--since`, `--usage-since`): `s` (seconds), `m`, `h`, `d`. ISO-8601 timestamps also accepted. `--usage-since` is bounded to `5m`–`7d`.
 
-`--account-id` and `--account-name` are mutually exclusive.
+`--no-confirm` bypasses interactive confirmation on destructive commands (`delete`, `unlink`). `SPIN_ALWAYS_BUILD` forces a build even when `--build` is omitted. Supply at most one of `--account-id` / `--account-name`; omit both to use the current account context.
+
+Version notes: plugin **0.7.0** (2026-03-20) adds cron sub-commands and `--account-name` / `--no-confirm` / `--skip-readiness-check`. Older **0.4.x** (2025-05-22 / 2025-07-04) lack these flags.
+
+---
+
+### 4.11 Other host integrations (limited / lower-confidence)
+
+The quotas & limits doc additionally lists the following as available on the platform. They lack dedicated Akamai SDK tutorials, so treat signatures as indicative rather than canonical:
+
+- **Serverless AI (Limited Access)** — `ai.invoke(model, payload)`. Limited access only.
+- **`wasi-config`** — `wasi:config/get(name)` (2024-09-27 snapshot). In JS, prefer `Variables.get(name)` (§4.3).
+- **Outbound MySQL** — `mysql.connect(config)`, `connection.query(sql, params)`.
+- **Outbound Redis** (client, not trigger) — `redis.connect(options)`, `client.get(key)`, `client.set(key, value)`.
+
+For KV and PostgreSQL, always use the canonical `@spinframework/spin-kv` (§4.4) and `@spinframework/spin-postgres` (§4.5) APIs — the generic `kv.get/kv.put` and `pg.connect` forms that appear in the quotas doc are non-canonical paraphrases and must not be used in JS/TS functions. Any outbound host (MySQL, Redis, AI endpoint) still requires an `allowed_outbound_hosts` entry.
 
 ---
 
@@ -466,7 +516,7 @@ router (AutoRouter)
 | `Variables.get(name)` | `[variables]` entry for `name`; pass via `--variable name=value` at deploy |
 | `openDefault()` | `key_value_stores = ["default"]` on the component |
 | `Postgres.open(...)` | `allowed_outbound_hosts = ["postgres://<host>:5432"]` |
-| `new S3Client({ endpoint, ... })` then `s3.send(...)` | `allowed_outbound_hosts` includes the S3 endpoint (e.g. `"https://.<region>.linodeobjects.com"` or `"https://."`) |
+| `new S3Client({ endpoint, ... })` then `s3.send(...)` | `allowed_outbound_hosts` includes the S3 endpoint (e.g. `"https://<region>.linodeobjects.com"`, or `'https://*'` to allow any HTTPS host) |
 | outbound `fetch(url, ...)` | `allowed_outbound_hosts` includes the target host; inter-Function calls must use full `https://<app-id>.fwf.app` |
 
 ### 5.4 Module → API → consequence-on-misuse
@@ -685,16 +735,16 @@ spin aka auth token create --name ci --expiration-days 90
 
 ---
 
-### 6.15 CLI: both `--account-id` and `--account-name`
+### 6.15 CLI: supplying both `--account-id` and `--account-name`
 
 ```bash
-# ❌ WRONG — mutually exclusive
+# ❌ AVOID — redundant; supply at most one account selector
 spin aka app list --account-id abc --account-name "My Account"
 
-# ✅ CORRECT — pick one
+# ✅ CORRECT — pick one (or omit both to use the current account context)
 spin aka app list --account-name "My Account"
 ```
-**Symptom:** both flags are ignored; command falls back to current context (silent surprise).
+**Symptom:** ambiguous account selection. If neither flag is supplied, the current account context is used.
 
 ---
 
@@ -777,3 +827,28 @@ Origin Server Hostname: myapp.fwf.app
 #   Keep the query parameters: Yes
 ```
 **Symptom:** function receives the full original path including prefix; all routes return 404.
+
+---
+
+### 6.20 CLI: deleting/regenerating a token by name
+
+```bash
+# ❌ WRONG — `auth token delete`/`regenerate` do not accept a bare name
+spin aka auth token delete my-ci-token
+
+# ✅ CORRECT — identify the token by --id (find it via `auth token list`)
+spin aka auth token delete --id 01HXXXXXXXXXXXXXXXXXXXXXXX
+```
+**Symptom:** the name is not matched; the command errors or affects no token.
+
+---
+
+### 6.21 Property Manager: Forward Host Header left at default
+
+```
+# ❌ WRONG — Forward Host Header = Incoming Host Header
+# Upstream Spin app receives a Host it does not recognize → request rejected
+
+# ✅ CORRECT — set Forward Host Header to "Origin Hostname"
+```
+**Symptom:** the function/origin rejects requests because the Host header does not match its expected origin.

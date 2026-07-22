@@ -1,53 +1,24 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/integrate-with-property-manager
-Date: 2026-06-30T09:38:23.786190
+Date: 2026-07-22T11:11:58.482580
 Model: gpt-oss:120b-cloud
-## Runtime Constraints
-- Do not exceed the WebAssembly module size limit imposed by Akamai Functions (the platform will reject modules larger than the allowed size; exact limit is defined by the service and must be checked in the console).  
-- Do not use Node‑specific built‑ins (e.g., `fs`, `net`, `process`) – the runtime is a lightweight V8 environment compiled to WebAssembly.  
-- Do not rely on dynamic `import()` at runtime; all imports must be resolved at build time by the `spin build` step.  
-- Do not exceed the per‑request CPU‑time quota (the platform enforces a hard timeout; long‑running loops will be terminated).  
-- Do not reference external URLs directly from the function code; all outbound traffic must be routed through the configured Property origin.  
-
 ## Supported APIs and Syntax
-```
-import { AutoRouter } from 'itty-router';
-```
-- **AutoRouter()** – creates an itty‑router instance that can be used to register HTTP handlers.
-
-```
-router.get(path: string, handler: (request: Request) => Response | Promise<Response>)
-```
-- Registers a GET route; `handler` receives a `Request` and returns a `Response` (or a promise of one).
-
-```
-router.fetch(request: Request): Response | Promise<Response>
-```
-- Returns the router’s response for the supplied `Request`. Used inside the fetch event listener.
-
-```
-addEventListener('fetch', async (event: FetchEvent) => { … })
-```
-- Registers the entry point for every incoming HTTP request. `event` is a `FetchEvent`.
-
-```
-event.respondWith(response: Response | Promise<Response>)
-```
-- Sends the supplied response back to the client.
-
-```
-new Response(body?: BodyInit, init?: ResponseInit)
-```
-- Constructs an HTTP response. `body` can be a string, Blob, etc.; `init` may contain status, headers, etc.
+- `import { AutoRouter } from 'itty-router'` — imports the automatic router constructor.  
+- `let router = AutoRouter();` — creates a router that automatically matches HTTP methods.  
+- `router.get(path, handler)` — registers a GET handler for the given `path`. Returns a `Response` object.  
+- `new Response(body)` — constructs an HTTP response with the supplied `body` string.  
+- `addEventListener('fetch', async (event) => { … })` — registers the entry‑point for every incoming request.  
+- `event.respondWith(promise)` — tells the runtime to use the supplied `Promise<Response>` as the HTTP response.  
+- `router.fetch(request)` — processes an incoming `Request` through the router and returns a `Promise<Response>`.
 
 ## Required Patterns
-**Pattern: Minimal Spin‑Functions entry point**
+**Basic Spin‑on‑Akamai‑Functions handler**
 
-```js
+```javascript
 import { AutoRouter } from 'itty-router';
 
 const router = AutoRouter();
 
-// Example route – respond to GET /
+// Example route – adjust as needed
 router.get("/", () => new Response("Hello, Akamai Functions"));
 
 addEventListener('fetch', async (event) => {
@@ -55,51 +26,32 @@ addEventListener('fetch', async (event) => {
 });
 ```
 
-**Pattern: Deploying a Spin app for Akamai Functions**
+**Deploy workflow (CLI commands, not runtime code)**  
 
 ```bash
-# Create a new Spin project using the Akamai Functions template
+# Create project
 spin new -E akamai-functions -t http-js -a hello-akamai-functions
 cd hello-akamai-functions
-
-# Replace src/index.js with the Minimal entry point (see above)
 
 # Build to WebAssembly
 spin build
 
-# Authenticate (once per session)
+# Deploy (must be logged in)
 spin aka login
-
-# Deploy
 spin aka deploy
 ```
 
-**Pattern: Configuring the Property origin**
+**Extract origin hostname from deploy output**  
 
-1. Obtain the origin hostname from the deploy output (strip `https://` and any trailing `/`).  
-2. In the Property rule, set **Origin Server Hostname** to that hostname.  
-3. Set **Forward Host Header** to **Origin Hostname**.  
-
-**Pattern: Stripping the routing prefix before forwarding to the function**
-
-```text
-Modify Outgoing Request Path behavior:
-  Action: Replace Part of the incoming path
-  Find what: /hello/
-  Replace with: /
-  Occurrences: First occurrence only
-  Keep the query parameters: Yes
-```
+- Remove the leading `https://` and any trailing `/` from the URL printed by `spin aka deploy`.  
+- Use the resulting hostname as **Origin Server Hostname** in the Property configuration.
 
 ## Common Mistakes and Gotchas
-- **Unlike a typical Node.js server, Akamai Functions runs in a WebAssembly‑based V8 sandbox** – any use of Node core modules (`fs`, `path`, etc.) will throw “module not found”.  
-- **Unlike a regular HTTP server, the request path is not automatically rewritten** – if you route `/hello/*` to the function, you must add a **Modify Outgoing Request Path** behavior to strip the `/hello/` prefix; otherwise the function receives `/hello/…` and will not match the defined route (`/`).  
-- **Unlike a standard URL, the Origin Server Hostname field expects only the hostname** – do not include the `https://` scheme or a trailing slash; the platform will reject the configuration.  
-- **Unlike a typical fetch handler, you must call `event.respondWith` exactly once** – returning a response directly from the listener without `respondWith` will result in a 500 error.  
-- **Unlike a local development server, the function code must be compiled with `spin build` before deployment** – attempting to deploy raw JavaScript files will fail with a “invalid module” error.  
+- **Path forwarding** – Unlike a plain Cloudflare Workers or Node.js server where the request path is received unchanged, Akamai Functions receives the path *after* Property‑level modifications. If the Property does **not** include a “Modify Outgoing Request Path” behavior that strips the routing prefix (e.g., `/hello/ → /`), the router will see `/hello/…` and the `router.get("/")` handler will not match.  
+- **Host header** – The Property must set **Forward Host Header** to **Origin Hostname**; otherwise the upstream Spin app may reject the request because the Host header does not match its expected origin.  
+- **Wildcard origin URL** – The URL shown by `spin aka deploy` is a wildcard (`…aka.akamai.tech (wildcard)`). Do **not** include the `https://` scheme or trailing slash when entering the hostname into the Property.  
 
 ## Version and Compatibility Notes
-- The Akamai Functions edge runtime is currently in **public preview**; you must complete the onboarding form and be granted preview access before you can use `spin aka` commands.  
-- The `http-js` template targets the **Akamai Functions edge runtime version bundled with the current Spin CLI**; upgrading the Spin CLI may change the underlying runtime version.  
-- The `AutoRouter` API is provided by the **itty‑router** library bundled with the template; it is fully supported in the preview runtime but may be subject to change in future releases.  
-- Property rule changes (origin hostname, path rewrite) only take effect after the new property version is **activated** (preferably in the Staging environment).  
+- Access to Akamai Functions requires enrollment in the **public preview** (complete the onboarding form).  
+- The Spin template used must be the `http-js` template with the `-E akamai-functions` extension flag.  
+- All CLI commands (`spin build`, `spin aka deploy`, `spin aka login`) assume the latest Spin version that supports the Akamai Functions extension. No additional feature flags are needed.  
