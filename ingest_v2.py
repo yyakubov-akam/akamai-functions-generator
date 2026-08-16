@@ -16,6 +16,7 @@ from crawl4ai.content_filter_strategy import PruningContentFilter
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 from config import ARCHIVE_DIR, INDEX_FILE, MODEL, MIN_CONTENT_LENGTH, DEFAULT_SCRAPING_ORDER, SITE_SCRAPING_OVERRIDES
 from change_detection import HeaderCheckResult, check_response_headers
+from markdown_source import DEFAULT_LLMS_INDEX, fetch_llms_urls, fetch_native_markdown
 import hashlib
 
 
@@ -41,6 +42,7 @@ async def check_all(force: bool = False):
 
     for url, entry in index.items():
         print(f"\n🔍 Checking: {url}")
+        needs_summary = entry.get("needs_summary", False)
 
         header_check = check_response_headers(
             url,
@@ -48,12 +50,14 @@ async def check_all(force: bool = False):
             old_last_modified=entry.get("last_modified"),
         )
 
-        if not force and header_check.outcome == "unchanged":
+        if not force and not needs_summary and header_check.outcome == "unchanged":
             print(f"✅ unchanged ({header_check.reason})")
             unchanged_count += 1
             continue
 
-        if force:
+        if needs_summary:
+            print("📝 Summary pending — fetching content")
+        elif force:
             print("🔄 Force enabled — fetching content")
         elif header_check.outcome == "changed":
             print(f"🔄 {header_check.reason} — verifying content")
@@ -69,7 +73,12 @@ async def check_all(force: bool = False):
         new_hash = hashlib.sha256(content.encode()).hexdigest()
         old_hash = entry.get("content_hash")
 
-        if not force and isinstance(old_hash, str) and new_hash == old_hash:
+        if (
+            not force
+            and not needs_summary
+            and isinstance(old_hash, str)
+            and new_hash == old_hash
+        ):
             print("✅ unchanged (content hash)")
             unchanged_count += 1
             index[url] = {
@@ -101,6 +110,7 @@ async def check_all(force: bool = False):
             "word_count": word_count,
             "last_fetched": datetime.now().isoformat(),
             "content_hash": new_hash,
+            "needs_summary": False,
             **response_metadata(header_check, entry),
         }
         save_index(index)
@@ -182,6 +192,7 @@ def update_index(
     content_hash: str | None = None,
     etag: str | None = None,
     last_modified: str | None = None,
+    needs_summary: bool = False,
 ):
     """Add or update an entry in the index manifest."""
     index = load_index()
@@ -193,6 +204,7 @@ def update_index(
         "etag": etag,
         "last_modified": last_modified,
         "content_hash": content_hash,
+        "needs_summary": needs_summary,
     }
     save_index(index)
 
@@ -305,12 +317,14 @@ def is_content_good(content: str) -> bool:
 # STRATEGY ROUTING
 # ─────────────────────────────────────────────
 _STRATEGY_MAP = {
+    "native/markdown": lambda url: fetch_native_markdown(url),
     "crawl4ai/pruned": lambda url: fetch_crawl4ai_pruned(url),
     "crawl4ai/raw":    lambda url: fetch_crawl4ai_raw(url),
     "trafilatura":     lambda url: fetch_trafilatura(url),
 }
 
 _STRATEGY_LABELS = {
+    "native/markdown": "server-provided Markdown",
     "crawl4ai/pruned": "crawl4ai (with pruning)",
     "crawl4ai/raw":    "crawl4ai (no pruning)",
     "trafilatura":     "trafilatura (HTTP fallback)",
@@ -319,7 +333,14 @@ _STRATEGY_LABELS = {
 
 def get_strategy_order(url: str) -> list[str]:
     domain = urlparse(url).netloc
-    return SITE_SCRAPING_OVERRIDES.get(domain, DEFAULT_SCRAPING_ORDER)
+    configured_order = SITE_SCRAPING_OVERRIDES.get(domain, DEFAULT_SCRAPING_ORDER)
+    primary_domain = urlparse(DEFAULT_LLMS_INDEX).netloc
+    if domain == primary_domain:
+        return [
+            "native/markdown",
+            *(strategy for strategy in configured_order if strategy != "native/markdown"),
+        ]
+    return configured_order
 
 
 # ─────────────────────────────────────────────
@@ -390,7 +411,7 @@ def save_to_disk(
 
 
 # ─────────────────────────────────────────────
-# SITEMAP
+# DISCOVERY
 # ─────────────────────────────────────────────
 def get_sitemap_urls(sitemap_url: str, prefix: str | None = None) -> List[str]:
     response = requests.get(sitemap_url, timeout=30)
@@ -464,19 +485,7 @@ async def process_single_url(url: str):
     print(f"\n💾 Archived to: {filepath}")
 
 
-async def process_sitemap(sitemap_url: str, prefix: str | None = None):
-    print(f"\n📡 Fetching sitemap: {sitemap_url}")
-    try:
-        urls = get_sitemap_urls(sitemap_url, prefix)
-    except Exception as e:
-        print(f"❌ Failed to fetch or parse sitemap: {e}")
-        return
-
-    if prefix:
-        print(f"🎯 Found {len(urls)} URLs matching prefix '{prefix}'")
-    else:
-        print(f"🎯 Found {len(urls)} URLs (no prefix filter)")
-
+async def process_discovered_urls(urls: list[str], source: str):
     if not urls:
         return
 
@@ -494,7 +503,9 @@ async def process_sitemap(sitemap_url: str, prefix: str | None = None):
         if content:
             header_check = check_response_headers(url)
             filepath = url_to_archive_path(url)
-            placeholder_summary = "Crawled via sitemap mode. No LLM summary generated."
+            placeholder_summary = (
+                f"Discovered via {source}. Run --check to generate the LLM summary."
+            )
             _, word_count = save_to_disk(url, content, placeholder_summary, strategy, filepath)
             content_hash = hashlib.sha256(content.encode()).hexdigest()
             metadata = response_metadata(header_check)
@@ -506,6 +517,7 @@ async def process_sitemap(sitemap_url: str, prefix: str | None = None):
                 content_hash,
                 etag=metadata["etag"],
                 last_modified=metadata["last_modified"],
+                needs_summary=True,
             )
             print("✅ Saved")
         else:
@@ -514,17 +526,81 @@ async def process_sitemap(sitemap_url: str, prefix: str | None = None):
         await asyncio.sleep(2)
 
 
+def register_discovered_urls(urls: list[str]) -> int:
+    """Add newly discovered URLs to the index for ingestion by --check."""
+    index = load_index()
+    added_count = 0
+
+    for url in urls:
+        if url in index:
+            continue
+        index[url] = {
+            "filepath": url_to_archive_path(url),
+            "strategy": None,
+            "word_count": 0,
+            "last_fetched": None,
+            "etag": None,
+            "last_modified": None,
+            "content_hash": None,
+            "needs_summary": True,
+        }
+        added_count += 1
+
+    if added_count:
+        save_index(index)
+    return added_count
+
+
+async def process_llms(llms_url: str):
+    print(f"\n📚 Fetching documentation index: {llms_url}")
+    try:
+        urls = fetch_llms_urls(llms_url)
+    except Exception as e:
+        print(f"❌ Failed to fetch or parse llms.txt: {e}")
+        return
+
+    print(f"🎯 Found {len(urls)} Markdown documentation pages")
+    added_count = register_discovered_urls(urls)
+    print(f"➕ Registered {added_count} new pages; {len(urls) - added_count} already indexed")
+
+
+async def process_sitemap(sitemap_url: str, prefix: str | None = None):
+    print(f"\n📡 Fetching sitemap: {sitemap_url}")
+    try:
+        urls = get_sitemap_urls(sitemap_url, prefix)
+    except Exception as e:
+        print(f"❌ Failed to fetch or parse sitemap: {e}")
+        return
+
+    if prefix:
+        print(f"🎯 Found {len(urls)} URLs matching prefix '{prefix}'")
+    else:
+        print(f"🎯 Found {len(urls)} URLs (no prefix filter)")
+
+    await process_discovered_urls(urls, "sitemap")
+
+
 # ─────────────────────────────────────────────
 # MAIN
 # ─────────────────────────────────────────────
 async def main():
-    parser = argparse.ArgumentParser(description="Article ingester with optional sitemap crawl mode")
+    parser = argparse.ArgumentParser(description="Documentation discovery and ingestion")
     parser.add_argument("url", nargs="?", help="Single article URL to fetch")
+    parser.add_argument(
+        "--llms",
+        nargs="?",
+        const=DEFAULT_LLMS_INDEX,
+        metavar="URL",
+        help=(
+            "Discover Markdown pages from llms.txt without ingesting them; "
+            "defaults to the Akamai Functions Guides index"
+        ),
+    )
     parser.add_argument("--sitemap", help="Sitemap XML URL to crawl")
     parser.add_argument("--prefix", default=None, help="Optional URL path prefix filter for sitemap mode")
     
     parser.add_argument("--check", action="store_true",
-                    help="Check all indexed URLs for changes and reingest if needed")
+                    help="Discover pages, then check all indexed URLs and reingest if needed")
     parser.add_argument("--force", action="store_true",
                     help="With --check: reingest all URLs regardless of change detection")
     args = parser.parse_args()
@@ -538,7 +614,12 @@ async def main():
         return
 
     if args.check:
+        await process_llms(args.llms or DEFAULT_LLMS_INDEX)
         await check_all(force=args.force)
+        return
+
+    if args.llms:
+        await process_llms(args.llms)
         return
 
     parser.print_help()

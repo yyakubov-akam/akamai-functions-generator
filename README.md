@@ -67,16 +67,30 @@ pip install crawl4ai trafilatura requests ollama
 
 Requires a local [Ollama](https://ollama.com/) instance. Configure the model in `config.py`.
 
-### Check for changes and reingest
+### Check for new and updated documentation
 
 ```bash
-# Check ETag/Last-Modified with lightweight HEAD requests first. When the source
-# does not provide usable validators, fall back to fetching and hashing content.
-# Only pages with changed extracted content are re-summarized:
+# Discover pages from the Akamai Functions Guides llms.txt, then check every
+# indexed page using ETag/Last-Modified. New and changed pages are downloaded
+# as native Markdown and summarized. Other extractors remain as fallbacks.
 python ingest_v2.py --check
 
-# Force reingest of all URLs regardless of change detection:
+# Force reingestion of every page after discovery:
 python ingest_v2.py --check --force
+```
+
+Existing entries without stored ETags may be reingested once to establish the
+native-Markdown validator baseline.
+
+### Discover links without checking content
+
+```bash
+# Register newly published pages without downloading or summarizing them:
+python ingest_v2.py --llms
+
+# A different llms.txt index can also be supplied explicitly, including with
+# the complete check workflow:
+python ingest_v2.py --check --llms https://example.com/docs/llms.txt
 ```
 
 ### Ingest a single URL
@@ -85,7 +99,7 @@ python ingest_v2.py --check --force
 python ingest_v2.py https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store
 ```
 
-### Crawl an entire sitemap
+### Crawl an entire sitemap (fallback discovery)
 
 ```bash
 python ingest_v2.py --sitemap https://techdocs.akamai.com/sitemap.xml --prefix akamai-functions
