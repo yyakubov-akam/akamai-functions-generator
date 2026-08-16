@@ -1,72 +1,20 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/webassembly-language-support-matrix
-Date: 2026-07-22T11:14:42.226478
+Date: 2026-08-16T09:26:26.693176
 Model: gpt-oss:120b-cloud
-## Required Patterns
-
-**Pattern: Compile to a WASI‑compatible WebAssembly module**  
-```bash
-# Example using Rust (one of the recommended languages)
-# 1. Install the WASI target
-rustup target add wasm32-wasi
-
-# 2. Build the project for WASI
-cargo build --release --target wasm32-wasi
-
-# 3. The resulting .wasm file can be deployed to Akamai Functions
-#    (e.g., upload via the Akamai CLI or UI)
-```
-
-**Pattern: Deploy a WASI module to Akamai Functions**  
-```javascript
-// Using the Akamai Functions SDK (pseudo‑code – actual SDK calls may differ)
-import { uploadFunction } from '@akamai/functions-sdk';
-
-const wasmBinary = await fetch('my_module.wasm').then(r => r.arrayBuffer());
-
-await uploadFunction({
-  name: 'my-wasi-function',
-  wasm: wasmBinary,
-  // No additional runtime configuration needed; the platform provides WASI
-});
-```
-
-**Pattern: Languages eligible for Akamai Functions**  
-Only languages that list **WASI** support (or have a Spin SDK, which implies WASI) can be used:
-
-| Language | WASI support |
-|----------|--------------|
-| JavaScript | ✅ |
-| Python | ✅ |
-| Java | ✅ |
-| PHP | ✅ |
-| C# / .NET | ✅ |
-| C++ | ✅ |
-| Ruby | ✅ |
-| C | ✅ |
-| Swift | ✅ |
-| Scala (JVM) | ✅ |
-| Go | ✅ |
-| Kotlin (JVM) | ✅ |
-| Rust | ✅ |
-| AssemblyScript | ✅ |
-| Grain | ✅ |
-| Motoko | ✅ |
-
-When selecting a language, ensure the build toolchain targets the `wasm32-wasi` (or equivalent) target.
-
----
+## Runtime Constraints
+- Do not use a language that lacks **WASI** support; only languages marked ✓ (or “In progress” if you verify full Preview 1 compliance) for the **WASI** column can run on Akamai Functions.  
+- Do not rely on **Spin SDK**‑only features; while the Spin SDK implies WASI compatibility, Akamai Functions require the underlying WASI runtime, not Spin‑specific extensions.  
+- Do not target a WebAssembly version newer than **WebAssembly 1.0**; only the core implementation (✓ in the **Core** column) is guaranteed to be supported.  
+- Do not assume browser‑only WebAssembly modules will execute; modules must be compiled for the **WASI Preview 1** ABI.  
 
 ## Common Mistakes and Gotchas
+- **Unlike** typical browser‑oriented WebAssembly where any language with a browser build can run, **Akamai Functions** **require** the module to be compiled for **WASI Preview 1**.  
+- **Unlike** generic Spin deployments that may accept Spin‑specific SDK libraries, **Akamai Functions** **do not** provide the Spin SDK at runtime; only the standard WASI system calls are available.  
+- **Unlike** the “In progress” status shown for some languages (e.g., Python Browser, TypeScript Browser), **Akamai Functions** **cannot** execute those builds until the language fully supports the required WASI preview.  
 
-- **Unlike standard Node.js or browser environments, Akamai Functions only executes WebAssembly modules that have WASI support.**  
-  *If you compile a module for the browser (e.g., `wasm32-unknown-unknown`) it will not run on Akamai Functions.*
-
-- **Unlike generic WebAssembly runtimes, Akamai Functions does not provide a full POSIX environment.**  
-  *Only the WASI Preview 1 APIs are available; attempts to use non‑standard syscalls will fail.*
-
-- **Unlike typical serverless platforms, you cannot upload raw source code; you must upload a compiled `.wasm` binary that conforms to the WASI ABI.**  
-
-- **Unlike local development, the function size is limited by the platform’s deployment quota (not specified here).**  
-  *Oversized `.wasm` binaries will be rejected at upload time.*
-
----
+## Version and Compatibility Notes
+- **WebAssembly Core**: Only the stable **WebAssembly 1.0** specification is supported.  
+- **WASI**: Must conform to **WASI Preview 1** (the first stable snapshot of the WASI proposal).  
+- Languages with a **✓** under the **WASI** column are confirmed compatible with Akamai Functions.  
+- Languages marked **“In progress”** for WASI may become compatible in future releases but are not guaranteed in the current runtime.  
+- The **Spin SDK** column indicates additional libraries for Spin; these do **not** affect Akamai Functions compatibility beyond the underlying WASI support.  

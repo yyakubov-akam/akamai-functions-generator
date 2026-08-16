@@ -1,0 +1,32 @@
+spin_manifest_version = 2
+
+[application]
+authors = ["Yury Yakubov <Agenobarb@gmail.com>"]
+description = "Web scraper that extracts page text and summarises it using an Ollama AI model"
+name = "web-scraper-ai"
+version = "0.1.0"
+
+[variables]
+ollama_url = { default = "http://172.232.132.131:11434" }
+model = { default = "gpt-oss:120b-cloud" }
+
+[[trigger.http]]
+route = "/..."
+component = "web-scraper-ai"
+
+[component.web-scraper-ai]
+source = "dist/web-scraper-ai.wasm"
+exclude_files = ["**/node_modules"]
+allowed_outbound_hosts = [
+    "http://172.232.132.131:11434",
+    "https://*",
+    "http://*",
+]
+
+[component.web-scraper-ai.variables]
+ollama_url = "{{ ollama_url }}"
+model = "{{ model }}"
+
+[component.web-scraper-ai.build]
+command = ["npm install", "npm run build"]
+watch = ["src/**/*.js"]

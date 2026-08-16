@@ -15,6 +15,7 @@ from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 from crawl4ai.content_filter_strategy import PruningContentFilter
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 from config import ARCHIVE_DIR, INDEX_FILE, MODEL, MIN_CONTENT_LENGTH, DEFAULT_SCRAPING_ORDER, SITE_SCRAPING_OVERRIDES
+from change_detection import HeaderCheckResult, check_response_headers
 import hashlib
 
 
@@ -25,9 +26,10 @@ MAX_PROMPT_CONTENT_CHARS = 120000
 
 async def check_all(force: bool = False):
     """
-    Re-fetch every indexed URL using the same browser-based strategies as ingest
-    (bypasses bot-protection that blocks plain HTTP requests), compare content
-    hashes, and re-summarize only pages that have actually changed.
+    Check every indexed URL with a lightweight HEAD request first. Compare ETag
+    or Last-Modified when available, and fall back to a full content fetch and
+    hash comparison when HEAD validators are unavailable. Re-summarize only
+    pages whose extracted content has actually changed.
     """
     index = load_index()
     if not index:
@@ -40,6 +42,24 @@ async def check_all(force: bool = False):
     for url, entry in index.items():
         print(f"\n🔍 Checking: {url}")
 
+        header_check = check_response_headers(
+            url,
+            old_etag=entry.get("etag"),
+            old_last_modified=entry.get("last_modified"),
+        )
+
+        if not force and header_check.outcome == "unchanged":
+            print(f"✅ unchanged ({header_check.reason})")
+            unchanged_count += 1
+            continue
+
+        if force:
+            print("🔄 Force enabled — fetching content")
+        elif header_check.outcome == "changed":
+            print(f"🔄 {header_check.reason} — verifying content")
+        else:
+            print(f"⚠️  {header_check.reason} — falling back to content hash")
+
         content, strategy = await get_article_content(url)
 
         if content is None:
@@ -50,8 +70,16 @@ async def check_all(force: bool = False):
         old_hash = entry.get("content_hash")
 
         if not force and isinstance(old_hash, str) and new_hash == old_hash:
-            print("✅ unchanged")
+            print("✅ unchanged (content hash)")
             unchanged_count += 1
+            index[url] = {
+                **entry,
+                "strategy": strategy,
+                "word_count": len(content.split()),
+                "last_fetched": datetime.now().isoformat(),
+                **response_metadata(header_check, entry),
+            }
+            save_index(index)
             continue
 
         print("🔄 CHANGED — reingesting")
@@ -73,8 +101,7 @@ async def check_all(force: bool = False):
             "word_count": word_count,
             "last_fetched": datetime.now().isoformat(),
             "content_hash": new_hash,
-            "etag": None,
-            "last_modified": None,
+            **response_metadata(header_check, entry),
         }
         save_index(index)
         print(f"💾 Archived to: {filepath}")
@@ -133,7 +160,29 @@ def save_index(index: dict):
         json.dump(index, f, indent=2, ensure_ascii=False)
 
 
-def update_index(url: str, filepath: str, strategy: str, word_count: int, content_hash: str | None = None):
+def response_metadata(header_check: HeaderCheckResult, entry: dict | None = None) -> dict:
+    """Return validator fields, preserving old values after a failed HEAD."""
+    entry = entry or {}
+    if header_check.headers_received:
+        return {
+            "etag": header_check.etag,
+            "last_modified": header_check.last_modified,
+        }
+    return {
+        "etag": entry.get("etag"),
+        "last_modified": entry.get("last_modified"),
+    }
+
+
+def update_index(
+    url: str,
+    filepath: str,
+    strategy: str,
+    word_count: int,
+    content_hash: str | None = None,
+    etag: str | None = None,
+    last_modified: str | None = None,
+):
     """Add or update an entry in the index manifest."""
     index = load_index()
     index[url] = {
@@ -141,8 +190,8 @@ def update_index(url: str, filepath: str, strategy: str, word_count: int, conten
         "strategy": strategy,
         "word_count": word_count,
         "last_fetched": datetime.now().isoformat(),
-        "etag": None,
-        "last_modified": None,
+        "etag": etag,
+        "last_modified": last_modified,
         "content_hash": content_hash,
     }
     save_index(index)
@@ -372,6 +421,7 @@ async def process_single_url(url: str):
     else:
         print(f"\n📰 Fetching: {url}\n")
 
+    header_check = check_response_headers(url)
     content, strategy = await get_article_content(url)
 
     if content is None:
@@ -400,7 +450,16 @@ async def process_single_url(url: str):
         filepath,
         source_was_truncated=source_was_truncated,
     )
-    update_index(url, filepath, strategy, word_count, content_hash)
+    metadata = response_metadata(header_check)
+    update_index(
+        url,
+        filepath,
+        strategy,
+        word_count,
+        content_hash,
+        etag=metadata["etag"],
+        last_modified=metadata["last_modified"],
+    )
 
     print(f"\n💾 Archived to: {filepath}")
 
@@ -433,10 +492,21 @@ async def process_sitemap(sitemap_url: str, prefix: str | None = None):
 
         content, strategy = await get_article_content(url)
         if content:
+            header_check = check_response_headers(url)
             filepath = url_to_archive_path(url)
             placeholder_summary = "Crawled via sitemap mode. No LLM summary generated."
             _, word_count = save_to_disk(url, content, placeholder_summary, strategy, filepath)
-            update_index(url, filepath, strategy, word_count)
+            content_hash = hashlib.sha256(content.encode()).hexdigest()
+            metadata = response_metadata(header_check)
+            update_index(
+                url,
+                filepath,
+                strategy,
+                word_count,
+                content_hash,
+                etag=metadata["etag"],
+                last_modified=metadata["last_modified"],
+            )
             print("✅ Saved")
         else:
             print(f"❌ Failed ({strategy})")

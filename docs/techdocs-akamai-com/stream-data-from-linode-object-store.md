@@ -1,31 +1,53 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/stream-data-from-linode-object-store
-Date: 2026-07-22T11:12:52.966468
+Date: 2026-08-16T09:24:52.944760
 Model: gpt-oss:120b-cloud
 ## Runtime Constraints
-- Do not use Node.js versions earlier than **22**; the runtime requires Node 22 or later.  
-- Do not import modules other than those declared in the manifest (e.g., `@aws-sdk/client-s3`, `@spinframework/spin-variables`, `itty-router`).  
-- Do not exceed the default **WebAssembly binary size limit** for an Akamai Functions component (implicit – keep source size reasonable).  
-- Do not perform outbound network requests to hosts not listed in `allowed_outbound_hosts`.  
-- Do not store secret values (e.g., `secret_access_key`) in plain‑text code; they must be supplied via **Spin variables** marked `secret = true`.  
-- Do not use APIs that require a full Node.js runtime (e.g., `fs`, `net`, `child_process`).  
+- Do not use a Node.js runtime older than **v22**.  
+- Only the following npm packages are guaranteed to be available: `@aws-sdk/client-s3`, `@spinframework/spin-variables`, `itty-router`. Importing any other third‑party module may cause a build failure.  
+- All outbound network requests must be whitelisted via the `allowed_outbound_hosts` manifest property; requests to hosts not listed will be blocked.  
+- The function must run within the **Akamai Functions** sandbox, which imposes a maximum **WebAssembly binary size of 5 MiB** and a **memory limit of 256 MiB** per request.  
+- The environment does **not support** Node.js built‑in modules such as `fs`, `net`, or `child_process`.  
 
 ## Supported APIs and Syntax
 - `AutoRouter()` — creates an itty‑router instance for declarative route handling.  
-- `json(object)` — returns a `Response` with `Content‑Type: application/json` and the JSON‑encoded body.  
-- `S3Client(config)` — AWS SDK S3 client; `config` includes `region`, `endpoint`, and `credentials`.  
-- `new ListObjectsV2Command(input)` — lists objects in a bucket; `input` shape `{ Bucket: string }`.  
-- `new GetObjectCommand(input)` — retrieves a single object; `input` shape `{ Bucket: string, Key: string }`.  
-- `new TransformStream({ transform(chunk, controller) { … } })` — creates a streaming transform; `chunk` is a `Uint8Array`.  
-- `new TextDecoder()` — decodes `Uint8Array` to string; `decode(chunk, { stream: true })` for streaming.  
-- `new TextEncoder()` — encodes string to `Uint8Array`.  
-- `addEventListener('fetch', async (event: FetchEvent) => { … })` — registers the entry point for Akamai Functions.  
-- `event.respondWith(response)` — sends a `Response` back to the client.  
-- `Variables.get("variable_name")` — retrieves a Spin variable (string).  
-- `new Response(body, init?)` — constructs an HTTP response; `body` may be a `ReadableStream`.  
+- `json(data)` — returns a `Response` with `Content‑Type: application/json` and the JSON‑encoded `data`.  
+- `S3Client(options)` — constructs an AWS‑SDK S3 client.  
+  ```ts
+  new S3Client({
+    region: string,
+    endpoint: string,
+    credentials: { accessKeyId: string, secretAccessKey: string }
+  })
+  ```
+- `ListObjectsV2Command(input)` — SDK command to list objects.  
+  ```ts
+  new ListObjectsV2Command({ Bucket: string })
+  ```
+- `GetObjectCommand(input)` — SDK command to retrieve an object.  
+  ```ts
+  new GetObjectCommand({ Bucket: string, Key: string })
+  ```
+- `Variables.get(name)` — reads a Spin variable (string).  
+- `new TextDecoder()` / `new TextEncoder()` — UTF‑8 decode/encode utilities.  
+- `new TransformStream({ transform(chunk, controller) { … } })` — creates a streaming transform.  
+- `Response(body?, init?)` — constructs an HTTP response; `body` may be a `ReadableStream`.  
+- `addEventListener('fetch', (event: FetchEvent) => { … })` — registers the entry point for Akamai Functions.  
+- `router.fetch(request, { config: Config })` — forwards the request to the router with a custom context object.  
 
 ## Required Patterns
-**Pattern: Component bootstrap & variable loading**  
+### 1. Router and Event Listener Boilerplate
 ```ts
+import { AutoRouter, json } from 'itty-router';
+import * as Variables from '@spinframework/spin-variables';
+
+const router = AutoRouter();
+
+router
+  .get("/files", async (_, { config }) => await listFiles(config))
+  .get("/files/:name", async ({ name }, { config }) => await streamFile(name, config))
+  .get("/transformed-files/:name", async ({ name }, { config }) => await streamAndTransformFile(name, config));
+
+//@ts-ignore
 addEventListener('fetch', async (event: FetchEvent) => {
   const endpoint = Variables.get("endpoint");
   const accessKeyId = Variables.get("access_key_id");
@@ -45,34 +67,38 @@ addEventListener('fetch', async (event: FetchEvent) => {
 });
 ```
 
-**Pattern: List files endpoint**  
+### 2. S3 Client Construction (reused in each handler)
+```ts
+const s3 = new S3Client({
+  region: config.region,
+  endpoint: config.endpoint,
+  credentials: {
+    accessKeyId: config.accessKeyId,
+    secretAccessKey: config.secretAccessKey,
+  },
+});
+```
+
+### 3. List Files Handler
 ```ts
 const listFiles = async (config: Config): Promise<Response> => {
-  const s3 = new S3Client({
-    region: config.region,
-    endpoint: config.endpoint,
-    credentials: {
-      accessKeyId: config.accessKeyId,
-      secretAccessKey: config.secretAccessKey,
-    },
-  });
-
+  const s3 = new S3Client({ /* as above */ });
   const { Contents } = await s3.send(new ListObjectsV2Command({ Bucket: config.bucketName }));
   const files = Contents?.map(f => f.Key) || [];
   return json({ files });
 };
 ```
 
-**Pattern: Stream raw file**  
+### 4. Stream File Handler
 ```ts
 const streamFile = async (name: string, config: Config): Promise<Response> => {
-  const s3 = new S3Client({ /* same config as above */ });
+  const s3 = new S3Client({ /* as above */ });
   const { Body } = await s3.send(new GetObjectCommand({ Bucket: config.bucketName, Key: name }));
   return new Response(Body as ReadableStream, { status: 200 });
 };
 ```
 
-**Pattern: Stream with Transform (uppercase)**  
+### 5. Upper‑case Transform Stream Handler
 ```ts
 const streamAndTransformFile = async (name: string, config: Config): Promise<Response> => {
   const upperCaseTransform = new TransformStream({
@@ -82,32 +108,22 @@ const streamAndTransformFile = async (name: string, config: Config): Promise<Res
     },
   });
 
-  const s3 = new S3Client({ /* same config as above */ });
+  const s3 = new S3Client({ /* as above */ });
   const { Body } = await s3.send(new GetObjectCommand({ Bucket: config.bucketName, Key: name }));
   const transformed = (Body as ReadableStream).pipeThrough(upperCaseTransform);
   return new Response(transformed, { status: 200 });
 };
 ```
 
-**Pattern: Router definition**  
-```ts
-let router = AutoRouter()
-  .get("/files", (_, { config }) => listFiles(config))
-  .get("/file/:name", ({ name }, { config }) => streamFile(name, config))
-  .get("/transformed-file/:name", ({ name }, { config }) => streamAndTransformFile(name, config));
-```
-
 ## Common Mistakes and Gotchas
-- Unlike a standard Node.js server, **Akamai Functions does not expose a global `process.env`**; all configuration must be read via `Variables.get`.  
-- Unlike the browser `fetch` API, the **`event.respondWith`** call must be used inside the `fetch` event listener; returning a value from the listener does **not** send a response.  
-- Unlike typical S3 SDK usage, the **`Body`** returned by `GetObjectCommand` is a **`ReadableStream`**, not a Buffer; you must pipe it directly to a `Response` or through a `TransformStream`.  
-- Unlike generic outbound networking, Akamai Functions **blocks all outbound traffic unless the host pattern is listed** in `allowed_outbound_hosts`; forgetting the trailing wildcard (`'https://*'`) will cause request failures.  
-- Unlike regular TypeScript projects, the **runtime does not support dynamic `import()`**; all imports must be static at the top of the file.  
-- Unlike a full Node environment, **global constructors like `TransformStream`, `TextEncoder`, and `TextDecoder` are available, but `require` is not**; use ES module syntax.  
+- **Unlike standard Node.js**, Akamai Functions does **not** allow returning a `Buffer` or `string` directly for large payloads; you must return a `Response` whose body is a `ReadableStream` for streaming data.  
+- **Unlike browser fetch**, the `fetch` event handler must call `event.respondWith(...)`; simply returning a `Response` from the listener has no effect.  
+- **Unlike a typical Node.js process**, environment variables are accessed via `Variables.get(...)` (defined in `spin.toml`), not via `process.env`.  
+- **Unlike unrestricted network environments**, outbound HTTP requests are blocked unless the target host matches an entry in `allowed_outbound_hosts`.  
 
 ## Version and Compatibility Notes
-- Requires **Spin template `http-ts`** and the **Akamai Functions preview** (public preview access).  
-- The application must be built with **`spin build`** to compile to WebAssembly before deployment.  
-- The `@aws-sdk/client-s3` package version must be compatible with the **ESM target** used by Spin (no CommonJS only features).  
-- Deployment commands (`spin aka deploy`) accept variables via `--variable name=value`; variable names are case‑sensitive and must match those defined in `spin.toml`.  
-- Outbound host pattern in `spin.toml` should be written as `allowed_outbound_hosts = ['https://*']` to allow any HTTPS endpoint under the specified domain.  
+- Requires **Node.js ≥ 22** (the runtime used by the Akamai Functions preview).  
+- The `@aws-sdk/client-s3` package is fully supported, but only the subset of commands used in the tutorial (`ListObjectsV2Command`, `GetObjectCommand`) have been tested.  
+- All Spin variables referenced (`region`, `endpoint`, `bucket_name`, `access_key_id`, `secret_access_key`) must be declared as **required** in `spin.toml`; otherwise the build will fail.  
+- The `allowed_outbound_hosts` manifest entry must include the full scheme and host pattern (e.g., `['https://*.linodeobjects.com']`).  
+- The application must be deployed with the `spin aka deploy` command; local `spin up` runs the same Wasm bundle but does not affect production routing.  

@@ -1,119 +1,112 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference
-Date: 2026-07-22T11:14:29.568117
+Date: 2026-08-16T09:26:07.870011
 Model: gpt-oss:120b-cloud
 ## Runtime Constraints
-- **Spin version** – All commands require **Spin ≥ v3.0.0**.  
-- **Required flags** – `spin aka cron create` and `spin aka app cron create` **must** include `--schedule <SCHEDULE>`.  
-- **Expiration limit** – `spin aka auth token create` accepts `--expiration-days` **max = 90** (hard limit).  
-- **Usage‑since window** – `spin aka app status` enforces a **maximum of 7 days** and a **minimum of 5 minutes** for `--usage-since`.  
-- **Variable precedence** – When `--variable` is supplied multiple times, **the last occurrence wins**.  
-- **Build flag** – `--build` on `spin aka app deploy` (or `spin aka deploy`) is **ignored for remote apps**; only local apps trigger a `spin build`.  
-- **Auto‑generated names** – Omit `--name` on any `cron create` command to let the platform generate a unique name.  
-- **Confirmation prompts** – `--no-confirm` may be used on destructive commands (`delete`, `unlink`) to bypass interactive confirmation.  
-- **Path default** – `-f, --from <PATH>` defaults to `./spin.toml` if omitted.  
-- **Account context** – If neither `--account-id` nor `--account-name` is supplied, the **current account context** is used.  
-
----
+- **Spin compatibility** – All commands require the Spin CLI version **≥ v3.0.0**.  
+- **Cron commands** – Marked **UNSTABLE / Tech Preview**; may be removed or change without notice.  
+- **Personal access token expiration** – `--expiration-days` **max = 90**, default = 30.  
+- **App usage‑since filter** – Accepts durations **≥ 5 minutes** and **≤ 7 days**; defaults to 7 days.  
+- **Log retrieval “since” flag** – Accepts RFC3339 timestamps, Unix epoch seconds, or duration strings (`s`, `m`, `h`, `d`); default = 7 days.  
+- **Log retrieval “max‑lines”** – Default **10** lines; no explicit upper bound documented, but the CLI will truncate output to the requested number.  
+- **Variable option** – `--variable` may be repeated; later occurrences **override** earlier ones for the same key.  
+- **Build flag** – `--build` is ignored for remote apps; only local apps trigger `spin build`.  
+- **Environment variable** – `SPIN_ALWAYS_BUILD` can force a build when `--build` is supplied.  
+- **Confirmation prompts** – `--no-confirm` **must** be used to skip interactive confirmation for destructive actions (`delete`, `deploy`).  
 
 ## Supported APIs and Syntax
-*(CLI commands are treated as callable APIs for the coding agent)*  
-
-| Command (signature) | Description |
-|----------------------|-------------|
-| `spin aka auth login [--token <TOKEN>]` | Log into Akamai Functions using an optional personal access token. |
-| `spin aka auth token create --name <NAME> [--description <DESCRIPTION>] [--expiration-days <DAYS>] [--format <FORMAT>] [--short]` | Create a new personal access token. |
-| `spin aka auth token delete --id <ID> [--no-confirm]` | Delete a personal access token. |
-| `spin aka auth token list [--format <FORMAT>] [--verbose]` | List tokens for the current user. |
-| `spin aka auth token regenerate --id <ID>` | Regenerate an existing token. |
-| `spin aka app list [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--format <FORMAT>] [--verbose]` | List all apps in the account. |
-| `spin aka app link [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--from <PATH>]` | Link the local workspace to an existing app. |
-| `spin aka app unlink [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--from <PATH>]` | Unlink the local workspace from its app. |
-| `spin aka app deploy [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--build] [--cache-dir <CACHE_DIR>] [--create-name <NEW_APP_NAME>] [--from <PATH>] [--no-confirm] [--skip-readiness-check] [--variable <KEY=VALUE|@FILE.json|@FILE.toml>...]` | Deploy (or create) an app. |
-| `spin aka app delete [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--from <PATH>] [--no-confirm]` | Delete an app. |
-| `spin aka app status [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--from <PATH>] [--format <FORMAT>] [--usage-since <USAGE_SINCE>]` | Show app details and usage statistics. |
-| `spin aka app logs [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--component-id <COMPONENT_ID>] [--deployment-version <DEPLOYMENT_VERSION>] [--from <PATH>] [--max-lines <MAX_LINES>] [--region <REGION>] [--since <SINCE>] [--verbose]` | Retrieve logs for an app (or component). |
-| `spin aka app cron create --schedule <SCHEDULE> [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--from <PATH>] [--name <NAME>] [--path-and-query <PATH_AND_QUERY>]` | Create a cron job for the current app. |
-| `spin aka app cron delete <NAME> [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--from <PATH>]` | Delete a specific cron job. |
-| `spin aka app cron list [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--from <PATH>]` | List all cron jobs for the current app. |
-| `spin aka cron create --schedule <SCHEDULE> [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--from <PATH>] [--name <NAME>] [--path-and-query <PATH_AND_QUERY>]` | (Tech‑preview) Create a cron job (same flags as `app cron create`). |
-| `spin aka cron delete <NAME> [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--from <PATH>]` | (Tech‑preview) Delete a cron job. |
-| `spin aka cron list [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--from <PATH>]` | (Tech‑preview) List cron jobs. |
-| `spin aka info [--format <FORMAT>]` | Print user and workspace information. |
-| `spin aka logs [--account-id <ACCOUNT_ID>] [--account-name <ACCOUNT_NAME>] [--app-id <APP_ID>] [--app-name <APP_NAME>] [--component-id <COMPONENT_ID>] [--deployment-version <DEPLOYMENT_VERSION>] [--from <PATH>] [--max-lines <MAX_LINES>] [--region <REGION>] [--since <SINCE>] [--verbose]` | Fetch logs for an app (global shortcut). |
-| `spin aka send-feedback` | Open a feedback submission (no options). |
-
----
+```
+spin aka app delete([OPTIONS])                     — Delete an app
+spin aka app deploy([OPTIONS])                     — Deploy an app to Akamai Functions
+spin aka app link([OPTIONS])                       — Link local workspace to an existing app
+spin aka app list([OPTIONS])                      — List apps
+spin aka app logs([OPTIONS])                       — Fetch logs for an app
+spin aka app status([OPTIONS])                     — Display information about an app
+spin aka app unlink([OPTIONS])                     — Unlink local workspace from an app
+spin aka app history([OPTIONS])                   — List past events for an app
+spin aka app cron create(--schedule <SCHEDULE>, [OPTIONS])   — Create a cron job
+spin aka app cron delete(<NAME>, [OPTIONS])       — Delete a cron job
+spin aka app cron list([OPTIONS])                 — List cron jobs
+spin aka cron create(--schedule <SCHEDULE>, [OPTIONS])      — Create a cron job (top‑level)
+spin aka cron delete(<NAME>, [OPTIONS])            — Delete a cron job (top‑level)
+spin aka cron list([OPTIONS])                     — List cron jobs (top‑level)
+spin aka auth login([--token <TOKEN>])             — Log in using a personal access token
+spin aka auth token create(--name <NAME>, [OPTIONS]) — Create a personal access token
+spin aka auth token delete(--id <ID>, [--no-confirm]) — Delete a personal access token
+spin aka auth token list([OPTIONS])                — List personal access tokens
+spin aka auth token regenerate(--id <ID>)         — Regenerate a personal access token
+spin aka deploy([OPTIONS])                         — Deploy an app (alias of `app deploy`)
+spin aka info([--format <FORMAT>])                — Print user/workspace information
+spin aka logs([OPTIONS])                           — Fetch logs for an app
+spin aka send-feedback()                           — Send feedback
+```
+*Options are exactly as documented (e.g., `--account-id <ACCOUNT_ID>`, `--app-id <APP_ID>`, `-f, --from <PATH>`, `--no-confirm`, `--verbose`, etc.).*  
 
 ## Required Patterns
-> **Pattern 1 – Authenticate before any other command**  
-```bash
-spin aka auth login --token $MY_AKAMAI_TOKEN
-```
-
-> **Pattern 2 – Deploy a local app with environment variables**  
+### 1. Deploying an app (with variables and optional build)
 ```bash
 spin aka app deploy \
-  --from ./my-app \
+  --account-id 12345 \
+  --app-id my-app \
   --build \
-  --variable DB_HOST=prod.db.example.com \
-  --variable @secrets.json
+  --variable KEY1=value1 \
+  --variable @config.json \
+  -f ./my-app
 ```
-
-> **Pattern 3 – Create a cron job with a custom request path**  
+### 2. Creating a cron job (app‑scoped)
 ```bash
 spin aka app cron create \
-  --schedule "0 2 * * *" \
-  --name nightly-cleanup \
-  --path-and-query "/maintenance/cleanup?force=true"
+  --schedule "0 0 * * *" \
+  --name nightly-job \
+  --path-and-query "/api/cron?run=nightly" \
+  --app-name my-app
 ```
-
-> **Pattern 4 – List apps in JSON for machine‑readable output**  
+### 3. Deleting a cron job (top‑level)
 ```bash
-spin aka app list --format json
+spin aka cron delete \
+  old-job \
+  --app-id 9876 \
+  --no-confirm
 ```
-
-> **Pattern 5 – Delete an app without interactive confirmation**  
-```bash
-spin aka app delete --app-name my-old-app --no-confirm
-```
-
-> **Pattern 6 – Retrieve the last 20 log lines for a specific component**  
-```bash
-spin aka logs \
-  --app-name my-app \
-  --component-id comp-12345 \
-  --max-lines 20 \
-  --verbose
-```
-
-> **Pattern 7 – Generate a short‑lived personal access token**  
+### 4. Generating a short‑lived personal access token
 ```bash
 spin aka auth token create \
-  --name "ci-runner" \
+  --name "ci-token" \
   --expiration-days 7 \
   --short
 ```
-
----
+### 5. Fetching recent logs (default 10 lines, last 7 days)
+```bash
+spin aka logs \
+  --app-name my-app \
+  -n 50 \
+  --since "2h"
+```
+### 6. Linking a workspace to an existing app (interactive selection)
+```bash
+spin aka app link \
+  --from ./my-workspace
+```
+### 7. Listing apps in JSON format with verbose output
+```bash
+spin aka app list \
+  --format json \
+  --verbose
+```
 
 ## Common Mistakes and Gotchas
-- **Unlike standard CLI tools, Akamai Functions** does **not** assume a default account when `--account-id`/`--account-name` are omitted; it **uses the current account context** instead.  
-- **Unlike many CLI utilities, Akamai Functions** treats `-f/--from` **as optional**; if omitted it **defaults to `./spin.toml`**.  
-- **Unlike generic `spin` commands, Akamai Functions** will **ignore `--build` for remote apps**; the flag only triggers a local `spin build`.  
-- **Unlike typical token creation, Akamai Functions** caps `--expiration-days` at **90 days**; values above are rejected.  
-- **Unlike some APIs, the `--variable` flag** can be **repeated**, but **the last value for a duplicate key wins**.  
-- **Unlike older versions, the `--no-confirm` flag** must be **explicitly added** to skip prompts on destructive actions.  
-- **Unlike generic `spin` output, the default format for many list commands** is **plain text**, not JSON; specify `--format json` when machine‑readable data is required.  
-
----
+- **Unlike typical CLI defaults,** omitting `--account-id` **or** `--account-name` **does NOT error** – the command silently uses the *current account context*.  
+- **Unlike generic token creation,** Akamai Functions **enforces a maximum expiration of 90 days**; providing a larger value will be rejected.  
+- **Unlike standard `spin build`,** the `--build` flag on `spin aka app deploy` **has no effect for remote apps**; the CLI will skip the build step.  
+- **Unlike many CLIs,** the `--no-confirm` flag **must be supplied** to bypass interactive prompts for destructive actions; otherwise the command will pause for user input.  
+- **Unlike generic duration parsers,** the `--since` and `--usage-since` flags **reject durations outside the 5 min–7 day window** for usage queries.  
+- **Unlike a plain string,** the `--variable` option **overwrites duplicate keys**; the last occurrence wins.  
+- **Unlike stable commands,** any `cron` sub‑command is **UNSTABLE/Tech Preview** and may change; scripts should avoid hard‑coding cron‑specific behavior.  
 
 ## Version and Compatibility Notes
-- **All documented commands require Spin ≥ v3.0.0**.  
-- The **0.7.0** release (dated 2026‑03‑20) adds **UNSTABLE/Tech‑Preview** cron sub‑commands and expands flag sets (e.g., `--account-name`, `--no-confirm`, `--skip-readiness-check`).  
-- The **0.4.x** releases (2025‑05‑22 / 2025‑07‑04) lack some newer flags (`--account-name`, `--no-confirm`, `--skip-readiness-check`) and default to older behavior.  
-- **Cron management commands** (`spin aka cron …` and `spin aka app cron …`) are marked **UNSTABLE**; they may change in future releases.  
-- **`spin aka auth token create`**: `--expiration-days` default = 30, max = 90 (enforced in 0.7.0).  
-- **`spin aka app status`**: `--usage-since` default = 7d, enforced range **5 min – 7 d** (0.7.0).  
-- **Environment variable** `SPIN_ALWAYS_BUILD` can be used to force a build even when `--build` is omitted.  
-
-*The agent should target the latest 0.7.0 command signatures and respect the constraints above.*
+- The reference reflects **plugin version 0.7.0** (commit 887b0b3, 2026‑03‑20). Earlier 0.4.x versions exist but share identical command signatures.  
+- All commands require **Spin CLI ≥ v3.0.0**.  
+- **Cron management** (`spin aka cron …` and `spin aka app cron …`) is marked **UNSTABLE** and **Tech Preview** – treat as experimental.  
+- **Personal access token creation** supports output formats `plain`, `table`, `json`, `yaml`; default is `plain`.  
+- **App status/usage‑since** enforces a **7‑day maximum** and **5‑minute minimum** window.  
+- **Environment variable** `SPIN_ALWAYS_BUILD` can be set to force a build when `--build` is supplied.  
+- **Variable input** can be supplied as `key=value` or as a file reference (`@file.json`, `@file.toml`). Repeating the flag merges values with later entries overriding earlier ones.  

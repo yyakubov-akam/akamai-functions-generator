@@ -1,0 +1,24 @@
+{
+  "name": "web-scraper-ai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.mjs && mkdirp dist && j2w -i build/bundle.js --initLocation http://web-scraper-ai.localhost -o dist/web-scraper-ai.wasm",
+    "build:debug": "node build.mjs && mkdirp dist && j2w -d -i build/bundle.js --initLocation http://web-scraper-ai.localhost -o dist/web-scraper-ai.wasm",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.25.8",
+    "mkdirp": "^3.0.1"
+  },
+  "dependencies": {
+    "@spinframework/build-tools": "^1.0.4",
+    "@spinframework/spin-variables": "^1.0.1",
+    "@spinframework/wasi-http-proxy": "^1.0.0",
+    "itty-router": "^5.0.18"
+  }
+}

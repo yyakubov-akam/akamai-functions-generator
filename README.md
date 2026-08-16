@@ -70,8 +70,9 @@ Requires a local [Ollama](https://ollama.com/) instance. Configure the model in 
 ### Check for changes and reingest
 
 ```bash
-# Re-fetch every indexed URL using a headless browser (bypasses bot protection),
-# compare content hashes, and re-summarize only pages that have changed:
+# Check ETag/Last-Modified with lightweight HEAD requests first. When the source
+# does not provide usable validators, fall back to fetching and hashing content.
+# Only pages with changed extracted content are re-summarized:
 python ingest_v2.py --check
 
 # Force reingest of all URLs regardless of change detection:
