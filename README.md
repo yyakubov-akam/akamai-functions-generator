@@ -213,21 +213,37 @@ Recompile docs/_compiled/functions-reference.md following the instructions in CO
 │       └── agent-instructions.yml  # Prevents instruction drift
 ├── AGENTS.md                       # Canonical instructions for every agent
 ├── CLAUDE.md                       # Claude Code imports AGENTS.md
+├── change_detection.py             # HTTP validator checks for ingestion
+├── config.py                       # Paths, model, and scraping settings
 ├── docs/
 │   ├── _compiled/
 │   │   └── functions-reference.md  # ← Both agents read this (compiled reference)
 │   └── techdocs-akamai-com/        # Raw Akamai techdocs articles (agent fallback)
-│       ├── quickstart.md
-│       ├── use-the-key-value-store.md
-│       ├── stream-data-from-linode-object-store.md
-│       ├── query-relational-databases-postgresql.md
-│       ├── integrate-with-property-manager.md
-│       ├── application-logs.md
 │       ├── aka-command-reference.md
-│       ├── webassembly-language-support-matrix.md
-│       ├── quotas-and-limits.md
+│       ├── application-logs.md
+│       ├── build-a-supabase-cache-proxy.md
+│       ├── delete-an-application.md
+│       ├── deploy-app-variables.md
+│       ├── deploy-using-github-actions.md
 │       ├── faq.md
+│       ├── http-trigger-reference.md
+│       ├── integrate-with-property-manager.md
+│       ├── link-an-application.md
+│       ├── list-and-inspect-your-applications.md
+│       ├── manage-accounts.md
+│       ├── query-relational-databases-mysql.md
+│       ├── query-relational-databases-postgresql.md
+│       ├── quickstart.md
+│       ├── quotas-and-limits.md
+│       ├── related-standards.md
+│       ├── schedule-tasks-with-cron-jobs-in-spin.md
+│       ├── stream-data-from-linode-object-store.md
+│       ├── update-an-application.md
+│       ├── use-the-key-value-store.md
+│       ├── webassembly-language-support-matrix.md
 │       └── welcome.md
+├── ingest_v2.py                    # Main documentation ingestion pipeline
+├── markdown_source.py              # llms.txt discovery and native Markdown fetching
 ├── scripts/
 │   └── sync_agent_instructions.py  # Regenerates Copilot instructions
 └── functions/                      # Generated functions go here
