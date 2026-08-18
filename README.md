@@ -47,20 +47,58 @@ Then describe what you want:
 Create an Akamai Function that redirects users to country-specific subdomains based on their GeoIP location.
 ```
 
-The agent will scaffold a complete function under `functions/<name>/` including:
+The agent will scaffold a complete function under `functions/<name>/`
+including:
+
 - `src/index.js` — the function source
 - `spin.toml` — Spin component manifest
 - `package.json` + `build.mjs` — build tooling
 - `README.md` — usage instructions
 
-### Build and run
+After generating the function, the agent will also:
+
+1. Run `spin build` and resolve any build failures.
+2. Start the local HTTP server with `spin up`.
+3. Send `curl -i http://localhost:3000/` as a baseline smoke test and exercise
+   any additional routes, methods, request bodies, headers, and expected
+   failure cases relevant to the function.
+4. Verify the returned HTTP status, headers, and body, then stop the local
+   server.
+
+The agent will **not** run `spin aka deploy` unless you explicitly ask it to
+deploy. You can always perform deployment manually instead.
+
+## Build and run
+
+To build and test a generated function manually, change to its directory,
+build it, and start the local server:
 
 ```bash
 cd functions/<function-name>
 spin build
 spin up
+```
+
+`spin up` listens on port `3000` by default and remains running in the
+foreground. Keep that terminal open and, from another terminal, test the root
+endpoint:
+
+```bash
+curl -i http://localhost:3000/
+```
+
+Exercise any other routes supported by the function, then stop `spin up` with
+`Ctrl+C`.
+
+Deployment is a separate, explicit step. When you are ready to deploy, run it
+manually:
+
+```bash
 spin aka deploy
 ```
+
+An AI agent will run this deployment command only when you explicitly prompt
+it to do so.
 
 ---
 
