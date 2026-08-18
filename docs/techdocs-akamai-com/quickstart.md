@@ -1,64 +1,89 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/quickstart
-Date: 2026-08-16T09:23:44.384216
-Model: gpt-oss:120b-cloud
+Date: 2026-08-17T08:31:08.490883
+Model: glm-4.7-flash:q8_0
 ## Runtime Constraints
-- Do not run JavaScript code directly; it must be compiled to WebAssembly using `spin build` before deployment.  
-- Do not use the `aka` plugin version older than the latest released version; always run `spin plugins update && spin plugins upgrade aka` before deploying.  
-- Do not assume port 3000 is free; if it is in use, start the local server with `spin up --listen <host>:<port>`.  
+
+- Node.js version 22 (or newer) is required
+- TinyGo version 0.27 or above is required
+- Rust target `wasm32-wasip1` must be added to the Rust toolchain
+- Go SDK requires the `CGO_ENABLED=1` environment variable to be set
+- Standard Go compiler does not support WASI exports; TinyGo must be used
 
 ## Supported APIs and Syntax
-```
-spin --version                     // prints the installed Spin CLI version
-spin plugin install aka            // installs the Akamai Functions plugin for Spin
-spin plugins update                // refreshes the list of available plugins
-spin plugins upgrade aka           // upgrades the aka plugin to the latest version
-spin build                         // compiles the Spin application to WebAssembly
-spin up [--listen <addr:port>]     // starts a local HTTP server (default 0.0.0.0:3000) and invokes the app per request
-spin aka login                    // initiates an interactive login flow for Akamai Functions
-spin aka deploy                    // deploys the compiled Spin app to Akamai Functions
-curl -i http://localhost:3000/    // (external tool) sends an HTTP request to the locally running app
-```
+
+### JavaScript / TypeScript
+`AutoRouter` — A router from the `itty-router` library for handling HTTP routes
+`addEventListener('fetch', callback)` — The standard Web API entry point for handling fetch events
+`new Response(body)` — Constructs an HTTP response object
+
+### Rust
+`spin_sdk::http::Request` — Represents an incoming HTTP request
+`spin_sdk::http::Response` — Represents an outgoing HTTP response
+`spin_sdk::http::IntoResponse` — Trait for types that can be converted into a response
+`spin_sdk::http_component` — Attribute macro to mark a function as an HTTP component
+`anyhow::Result` — Error handling type used in component handlers
+
+### Go
+`spinhttp.Handle(handler)` — Registers a handler function for incoming HTTP requests
+`http.ResponseWriter` — Interface for writing the HTTP response
+`http.Request` — Represents the incoming HTTP request
 
 ## Required Patterns
-### 1. Local testing pattern
-```bash
-# Build the app
-spin build
 
-# Run locally (optional custom port)
-spin up --listen 127.0.0.1:3001   # omit --listen to use default 0.0.0.0:3000
+### JavaScript / TypeScript Entry Point
+```javascript
+import { AutoRouter } from 'itty-router';
 
-# In a separate terminal, issue a request
-curl -i http://localhost:3000/
+let router = AutoRouter();
+
+router
+    .get("/", () => new Response("hello universe"))
+    .get('/hello/:name', ({ name }) => `Hello, ${name}!`);
+
+addEventListener('fetch', async (event) => {
+    event.respondWith(router.fetch(event.request));
+});
 ```
 
-### 2. Authentication & authorization pattern
-```bash
-# Start login flow
-spin aka login
+### Rust HTTP Component
+```rust
+use spin_sdk::http::{IntoResponse, Request, Response};
+use spin_sdk::http_component;
 
-# Follow the printed URL, authenticate with Akamai Control Center or GitHub,
-# then approve the CLI when prompted.
+#[http_component]
+fn handle_hello_spin(req: Request) -> anyhow::Result<impl IntoResponse> {
+    Ok(Response::builder()
+        .status(200)
+        .header("content-type", "text/plain")
+        .body("Hello, Akamai")
+        .build())
+}
 ```
 
-### 3. Deployment pattern
-```bash
-# Ensure you are logged in (see pattern #2)
-spin aka deploy
+### Go HTTP Handler
+```go
+import (
+    spinhttp "github.com/spinframework/spin/sdk/go/v2/http"
+)
 
-# The CLI will:
-#   1. Read spin.toml in the current directory
-#   2. Prompt for a new app name (or link to an existing app)
-#   3. Ask for confirmation
-#   4. Deploy and output the public URL
+func init() {
+    spinhttp.Handle(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        fmt.Fprintln(w, "Hello Akamai!")
+    })
+}
 ```
 
 ## Common Mistakes and Gotchas
-- **Unlike typical Node.js execution, Akamai Functions does not run raw JavaScript** – the code must be compiled to WebAssembly with `spin build` before any `spin up` or `spin aka deploy`.  
-- **Unlike a generic local server, the default `spin up` port (3000) may already be occupied** – you must specify an alternate address with `--listen` to avoid a bind error.  
-- **Unlike a static CLI, the `aka` plugin can become out‑of‑date** – always run the upgrade commands (`spin plugins update && spin plugins upgrade aka`) before login or deploy to avoid compatibility failures.  
+
+- Unlike standard Node.js development, Akamai Functions requires the `addEventListener('fetch')` pattern to handle incoming requests
+- Route ordering matters in `AutoRouter`; the first matching route is used, and unmatched routes return a 404
+- Unlike standard Go development, Akamai Functions requires the `spinhttp.Handle` function in an `init()` block to register the handler
+- Unlike standard Go development, Akamai Functions requires the `CGO_ENABLED=1` environment variable to build the Go SDK
 
 ## Version and Compatibility Notes
-- Access to Akamai Functions requires enrollment in the public preview; the CLI will refuse login/deploy without an approved allow‑list.  
-- The `aka` plugin must be the latest version released on the Spin plugin registry; older versions lack support for the current preview APIs.  
-- The Quickstart documentation reflects the state of the platform as of the last update (25 days ago). Future changes may require re‑running the plugin upgrade steps.
+
+- Spin binary version 3.6.2 is the supported release for Windows
+- Node.js version 22.13.0 is the version used in the documentation examples
+- The Rust target `wasm32-wasip1` is required for Rust compilation
+- The Go SDK version v0.10.0 is referenced in the build output

@@ -1,44 +1,43 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/manage-accounts
-Date: 2026-08-16T10:55:16.365202
-Model: gpt-oss:120b-cloud
-## Supported APIs and Syntax
-| Command | Description |
-|---|---|
-| `spin aka info` | Returns the current account name and its UUID. Requires plugin version **v0.4** or higher. |
-| `spin aka app list` | Lists applications in the default (personal) account. |
-| `spin aka app list --account-name <account_name>` | Lists applications in the specified team account. |
-| `spin aka app list --account-id <account_id>` | Lists applications in the specified team account (using the UUID). |
-| `spin aka deploy --account-name <account_name>` | Deploys the current Spin application into the specified team account. |
-| `spin aka deploy --account-id <account_id>` | Deploys the current Spin application into the specified team account (using the UUID). |
-| `spin aka delete app --app-name <app_name> --account-name <account_name>` | Deletes the named application from the specified team account. |
-| `spin aka delete app --app-name <app_name> --account-id <account_id>` | Deletes the named application from the specified team account (using the UUID). |
+Date: 2026-08-17T09:12:10.778036
+Model: glm-4.7-flash:q8_0
+## Runtime Constraints
 
----
+- RBAC is not supported; all members have the same permissions.
+- `spin aka info` command requires plugin version v0.4 or higher.
+
+## Supported APIs and Syntax
+
+- `spin aka login` — Authenticates user to Akamai Functions.
+- `spin aka info` — Displays account name and ID.
+- `spin aka app list` — Lists applications in the current or specified account.
+- `spin aka deploy` — Deploys application to the current or specified account.
+- `spin aka delete app` — Removes an application from the specified account.
 
 ## Required Patterns
-**Targeting a specific team account**
 
-```bash
-# Deploy to a team account
-spin aka deploy --account-name dev_team_1
+- **View Team Applications**
+  ```shell
+  spin aka app list --account-name <team_name>
+  ```
 
-# List apps in a team account
-spin aka app list --account-name dev_team_1
+- **Deploy to Team Account**
+  ```shell
+  spin aka deploy --account-name <team_name>
+  ```
 
-# Delete an app from a team account
-spin aka delete app --app-name graphql --account-name dev_team_1
-```
-
-*Always include either `--account-name` or `--account-id` when operating on a team account; otherwise the command defaults to the personal account.*
-
----
+- **Delete Application from Team Account**
+  ```shell
+  spin aka delete app --app-name <app_name> --account-name <team_name>
+  ```
 
 ## Common Mistakes and Gotchas
-- **Unlike platforms with Role‑Based Access Control (RBAC), Akamai Functions does not support RBAC.** Every member of a team account has full permissions and can permanently delete any application in that account.  
-- **Omitting the `--account-name`/`--account-id` flag** runs the command against the personal account, which may lead to unintended deployments or deletions.  
 
----
+- Unlike standard cloud environments, Akamai Functions does not support Role-Based Access Control (RBAC); any member can permanently delete any application.
+- Unlike standard deployments, default actions run in the personal account context; team accounts require explicit `--account-name` or `--account-id` flags.
+- All actions run in the context of the personal account unless a team account is specified.
 
 ## Version and Compatibility Notes
-- The `spin aka info` command is only available with **plugin version v0.4** or higher.  
-- There is **no limit** on the number of team accounts or the number of users per team account.  
+
+- Plugin version v0.4 or higher is required for `spin aka info`.
+- Limited availability status is noted in sibling pages.

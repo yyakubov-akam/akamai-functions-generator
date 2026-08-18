@@ -1,59 +1,39 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/deploy-app-variables
-Date: 2026-08-16T10:57:18.827987
-Model: gpt-oss:120b-cloud
+Date: 2026-08-17T09:27:52.973433
+Model: glm-4.7-flash:q8_0
+## Runtime Constraints
+
+*   No specific runtime constraints (CPU, memory, module restrictions) are defined in this source document.
+
 ## Supported APIs and Syntax
 
-- `spin aka deploy --variable key=value` — Deploys a Spin application to Akamai Functions while overriding the value of an application variable defined in `spin.toml`.  
-- `spin aka deploy --file path/to/spin.toml` — Specifies an alternate manifest file for the deployment.  
-- `spin.toml` variable declaration syntax:  
-
-  ```toml
-  [variables]
-  compression_level = { default = "1" }
-  ```
-
-  Defines an application variable named `compression_level` with a default value of `"1"`.
+*   `spin aka deploy` — Deploys the application to Akamai Functions.
+*   `spin.toml` — Configuration file for defining application variables.
 
 ## Required Patterns
 
-**Pattern: Declare an application variable in `spin.toml`**
+### Define Variables in Configuration
+Declare variables within the `[variables]` section of the `spin.toml` file.
 
 ```toml
 [variables]
-my_variable = { default = "default-value" }
-```
-
-**Pattern: Deploy with an overridden variable value**
-
-```bash
-spin aka deploy --variable my_variable=custom-value
-```
-
-**Pattern: Deploy using a custom manifest file**
-
-```bash
-spin aka deploy --file ./path/to/custom-spin.toml
-```
-
-**Pattern: Full deployment flow (example)**
-
-```bash
-# 1. Define variable in spin.toml
-cat > spin.toml <<'EOF'
-[variables]
 compression_level = { default = "1" }
-EOF
+```
 
-# 2. Deploy, overriding the variable
+### Deploy with Variable Overrides
+Use the `--variable` flag with `spin aka deploy` to override variable values without modifying the application code.
+
+```shell
 spin aka deploy --variable compression_level=3
 ```
 
 ## Common Mistakes and Gotchas
 
-- **Unlike typical environment variables, Akamai Functions encrypts application variables at rest and in transit**, but the underlying cryptographic implementations have **not been assessed for PCI compliance**.  
-- **Unlike a code change, updating an application variable still creates a new deployment version** (the version number is incremented). Forgetting this can lead to confusion when tracking releases.  
+*   Unlike standard deployments where configuration changes might be hot-swapped, Akamai Functions propagates variable changes as a new deployment, incrementing the version number.
+*   Unlike standard secrets, Akamai Functions encrypts application variables at rest and in transit by default.
+*   Unlike standard PCI compliance, the underlying cryptographic implementations for application variables have not been assessed for PCI compliance.
 
 ## Version and Compatibility Notes
 
-- Application variables are **encrypted by default** on the Akamai Functions platform. No additional flags are required to enable encryption.  
-- No explicit feature‑flag or bundle‑version requirements are documented for using application variables; they are available in all current releases of the Spin framework for Akamai Functions.  
+*   Requires Spin v3.
+*   Last updated: 2026-08-05

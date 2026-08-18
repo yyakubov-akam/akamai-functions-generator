@@ -1,0 +1,162 @@
+{
+  "created_at": "2026-08-16T11:27:28.979186",
+  "temperature": 0.3,
+  "ollama_model": "gpt-oss:120b-cloud",
+  "mlx_model": "mlx-community/gemma-4-26b-a4b-it-4bit",
+  "mlx_thinking": false,
+  "mlx_max_tokens": 4096,
+  "articles": {
+    "welcome": {
+      "origin": "https://techdocs.akamai.com/akamai-functions/docs/welcome",
+      "characters": 6182,
+      "words": 472,
+      "sha256": "4559015d04762810e2c5fc9bcdb246fe08001613793d9452c3440a8d27190a73"
+    },
+    "quickstart": {
+      "origin": "https://techdocs.akamai.com/akamai-functions/docs/quickstart",
+      "characters": 17184,
+      "words": 2186,
+      "sha256": "13828ec9dc198876691a939a756a6c4658a3e7b80f200bcc64c52342e383704a"
+    },
+    "key-value-store": {
+      "origin": "https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store",
+      "characters": 12023,
+      "words": 1491,
+      "sha256": "58e1c76272dd1bef86ce138142a47d3f1c8094334c43f370dc6be3a9d8478143"
+    },
+    "quotas-and-limits": {
+      "origin": "https://techdocs.akamai.com/akamai-functions/docs/quotas-and-limits",
+      "characters": 7312,
+      "words": 444,
+      "sha256": "94a4dbc073df2ea13141c13c405d29d79ffd8888c0c8b0893b08de04b20552f8"
+    }
+  },
+  "runs": [
+    {
+      "backend": "mlx-no-thinking",
+      "model": "mlx-community/gemma-4-26b-a4b-it-4bit",
+      "article": "welcome",
+      "content": "## Runtime Constraints\n\n- Use the Spin framework for building and running applications.\n- Applications must be compiled to WebAssembly (Wasm).\n- Development must be compatible with the `spin aka` deployment plugin.\n\n## Supported APIs and Syntax\n\n- `spin aka deploy` — Command used to deploy Spin applications to the Akaks Akamai Functions platform.\n\n## Version and Compatibility Notes\n\n- Akamai Functions is currently in **Limited availability (public preview)**.\n- The runtime is based on the Spin framework and uses a WebAssembly-based execution environment.",
+      "thinking": "",
+      "timing": {
+        "wall_seconds": 8.033066750038415,
+        "first_token_seconds": 6.342625500168651,
+        "prompt_tokens": 1414,
+        "prompt_tokens_per_second": 227.21868234714913,
+        "generation_tokens": 115,
+        "generation_tokens_per_second": 68.52912949176812,
+        "wall_tokens_per_second": 14.315827762722133,
+        "peak_memory_gb": 15.294530294,
+        "done_reason": "stop"
+      },
+      "output_metrics": {
+        "characters": 560,
+        "words": 84,
+        "headings": [
+          "Runtime Constraints",
+          "Supported APIs and Syntax",
+          "Version and Compatibility Notes"
+        ],
+        "unexpected_headings": [],
+        "code_fences": 0
+      }
+    },
+    {
+      "backend": "mlx-no-thinking",
+      "model": "mlx-community/gemma-4-26b-a4b-it-4bit",
+      "article": "quickstart",
+      "content": "## Runtime Constraints\n\n- For JavaScript/TypeScript, use Node.js version 22 or newer.\n- For Rust, the `wasm32-wasip1` target must be installed via `rustup`.\n- For TinyGo, the compiler must be installed and the `CGO_ENABLED=1` environment variable must be set for builds.\n- For TinyGo, the Spin SDK requires TinyGo version 0.27 or above.\n\n## Supported APIs and Syntax\n\n### JavaScript/TypeScript\n`import { AutoRouter } from 'itty-router';` — Imports the router for handling HTTP requests.\n`let router = AutoRouter();` — Initializes an AutoRouter instance.\n`router.get(path, handler)` — Defines a GET route; if the route does not return, it acts as middleware.\n`addEventListener('fetch', async (event) => { ... });` — Standard entry point for handling fetch events.\n`event.respondWith(router.fetch(event.request))` — Passes the incoming request to the router and responds with the result.\n\n### Rust\n`use spin_sdk::http::{IntoResponse, Request, Response};` — Imports necessary types for handling HTTP components.\n`#[http_component]` — Attribute to mark a function as a Spin HTTP component.\n`fn handle_hello_spin(req: Request) -> anyhow::Result<impl IntoResponse>` — Function signature for an HTTP component.\n`Response::builder().status(code).header(key, value).body(body).build()` — Builder pattern to construct an HTTP response.\n\n### Go (TinyGo)\n`spinhttp.Handle(func(w http.ResponseWriter, r *http.Request) { ... })` — Registers the HTTP handler within the Spin runtime.\n\n## Required Patterns\n\n### JavaScript/TypeScript (AutoRouter Pattern)\n```javascript\nimport { AutoRouter } from 'itty-router';\n\nlet router = AutoRouter();\n\nrouter  \n    .get(\"/\", () => new Response(\"hello universe\"))  \n    .get('/hello/:name', ({ name }) => `Hello, ${name}!`)\n\naddEventListener('fetch', async (event) => {  \n    event.respondWith(router.fetch(event.request));  \n});\n```\n\n### Rust (HTTP Component Pattern)\n```rust\nuse spin_sdk::http::{IntoResponse, Request, Response};\nuse spin_sdk::http_component;\n\n#[http_component]\nfn handle_hello_spin(req: Request) -> anyhow::Result<impl IntoResponse> {\n    Ok(Response::builder()\n        .status(200)\n        .header(\"content-type\", \"text/plain\")\n        .body(\"Hello, Akamai\")\n        .build())\n}\n```\n\n### Go (TinyGo Pattern)\n```go\npackage main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\tspinhttp \"github.com/spinframework/spin/sdk/go/v2/http\"\n)\n\nfunc init() {\n\tspinhttp.Handle(func(w http.ResponseWriter, r *http.Request) {\n\t\tfmt.Fprintln(w, \"Hello Akamai!\")\n\t})\n}\n\nfunc main() {}\n```\n\n## Common Mistakes and Gotaks\n\n- Unlike standard Node.js environments where you might use `http.createServer`, Akamai Functions (via Spin) use the `addEventListener('fetch', ...)` pattern for JavaScript/TypeScript.\n- Unlike standard Go builds, TinyGo requires `CGO_ENABLED=1` to be set for the Spin SDK to function correctly.\n- Unlike standard routing libraries, in `itty-router`'s `AutoRouter`, route ordering matters: the first matching route is used, and routes without a return value act as middleware.",
+      "thinking": "",
+      "timing": {
+        "wall_seconds": 19.74294687481597,
+        "first_token_seconds": 7.108258625026792,
+        "prompt_tokens": 5112,
+        "prompt_tokens_per_second": 731.8127504228509,
+        "generation_tokens": 817,
+        "generation_tokens_per_second": 64.71473797755499,
+        "wall_tokens_per_second": 41.381866910768125,
+        "peak_memory_gb": 15.960546078,
+        "done_reason": "stop"
+      },
+      "output_metrics": {
+        "characters": 3004,
+        "words": 367,
+        "headings": [
+          "Runtime Constraints",
+          "Supported APIs and Syntax",
+          "Required Patterns",
+          "Common Mistakes and Gotaks"
+        ],
+        "unexpected_headings": [
+          "Common Mistakes and Gotaks"
+        ],
+        "code_fences": 3
+      }
+    },
+    {
+      "backend": "mlx-no-thinking",
+      "model": "mlx-community/gemma-4-26b-a4b-it-4bit",
+      "article": "key-value-store",
+      "content": "## Runtime Constraints\n\n- Do not use the `wasi:keyvalue/atomic` interface.\n- Key value stores must be scoped to a single application; they cannot be shared between applications.\n- Key value query rates are limited (production increases available via customer request).\n- EdgeKV is not compatible with Akamai Functions.\n\n## Supported APIs and Syntax\n\n`@spinframework/spin-kv` — Package providing the Spin SDK for JavaScript key-value operations.\n\n`openDefault()` — Opens the default key-value store provided by the platform.\n`store.exists(key)` — Returns a boolean indicating if the key exists in the store.\n`store.getJson(key)` — Retrieves JSON data associated with the specified key.\n`store.setJson(key, value)` — Stores JSON data at the specified key.\n\n## Required Patterns\n\n### Key-Value Store Access (Default)\n```javascript\nimport { openDefault } from '@spinframework/spin-kv';\n\nconst store = openDefault();\n// Perform operations\nstore.setJson(\"my-key\", { data: \"value\" });\nconst data = store.getJson(\"my-key\");\n```\n\n### HTTP Route Handling with KV\n```javascript\nimport { openDefault } from '@spinframework/spin-kv';\nimport { AutoRouter } from 'itty-router';\n\nconst router = AutoRouter();\n\nrouter.get(\"/get/:key\", ({key}) => {\n    const store = openDefault();\n    if (!store.exists(key)) {\n        return new Response(null, { status: 404 });\n    }\n    const found = store.getJson(key);\n    return new Response(JSON.stringify(found), { \n        status: 200, \n        headers: { \"content-type\": \"application/json\" } \n    });\n});\n\naddEventListener('fetch', async (event) => {  \n    event.respondWith(router.fetch(event.request));\n});\n```\n\n## Common Mistakes and Gotwas\n\n- Unlike standard distributed databases, Akamai Functions key-value stores are isolated to a single application and cannot be accessed by other applications.\n- Unlike standard Node.js environments, the `wasi:keyvalue/atomic` interface is not supported due to consistency model differences.\n- Unlike EdgeKV, Akamai Functions key-value stores are a separate, incompatible service.\n\n## Version and Compatibility Notes\n\n- The `default` label in `spin.toml` is the only allowed label for automatic provisioning in Akamai Functions.\n- Local testing uses a local SQLite file (`sqlite_key_value.db`) in the `.spin` folder to simulate the key-value store.",
+      "thinking": "",
+      "timing": {
+        "wall_seconds": 14.285628916928545,
+        "first_token_seconds": 5.387886167038232,
+        "prompt_tokens": 3884,
+        "prompt_tokens_per_second": 739.8379899440258,
+        "generation_tokens": 584,
+        "generation_tokens_per_second": 65.72278999702247,
+        "wall_tokens_per_second": 40.88024429277713,
+        "peak_memory_gb": 15.960546078,
+        "done_reason": "stop"
+      },
+      "output_metrics": {
+        "characters": 2317,
+        "words": 302,
+        "headings": [
+          "Runtime Constraints",
+          "Supported APIs and Syntax",
+          "Required Patterns",
+          "Common Mistakes and Gotwas",
+          "Version and Compatibility Notes"
+        ],
+        "unexpected_headings": [
+          "Common Mistakes and Gotwas"
+        ],
+        "code_fences": 2
+      }
+    },
+    {
+      "backend": "mlx-no-thinking",
+      "model": "mlx-community/gemma-4-26b-a4b-it-4bit",
+      "article": "quotas-and-limits",
+      "content": "## Runtime Constraints\n\n- Maximum memory per function execution is 128 MiB\n- Maximum App Size is 50 MiB\n- Maximum request handler duration is 30 seconds\n- Maximum request/response size is 10 MiB\n- Maximum KV Storage (across all store instances) is 2 GB\n- Maximum KV read requests per app is 1,000 RPS\n- Maximum KV write requests per app is 50 RPS\n- Maximum KV value size is 1 MB\n- Maximum KV key size is 8 KB\n- Do not use Redis triggers\n- Do not use SQLite storage\n- Do not use `wasi-blobstore`\n- Do not use `wasi-messaging`\n- Do not use custom triggers\n- Do not use local hostnames (e.g., `localhost`) or short service names for inter-app communication\n\n## Supported APIs and Syntax\n\n`HTTP Trigger` — Supported trigger mechanism for HTTP requests.\n`Outbound HTTP` — Supported API for sending outbound HTTP requests.\n`Application Variables` — Supported API for accessing application variables.\n`Key Value Storage` — Supported API for key-value storage operations.\n`Service Chaining` — Supported mechanism for calling other services.\n`MySQL` — Supported database connectivity.\n`PostgreSQL` — Supported database connectivity.\n`Outbound Redis` — Supported API for storing data in Redis from components.\n`wasi-config` — Supported (2024-09-27 snapshot).\n`wasi:keyvalue/store` — Supported interface (2024-10-17 snapshot).\n`wasi:keyvalue/batch` — Supported interface (2024-10-17 snapshot).\n\n## Required Patterns\n\n**Inter-App Communication**\nWhen calling another Spin application, use the full public URL.\n```text\nhttps://<app-id>.fwf.app\n```\n\n## Common Mistakes and Gotchas\n\n- Unlike standard Docker Compose or Kubernetes environments, Akamai Functions do not support local hostnames like `localhost` or short service names for inter-app communication; you must use the full public URL.\n- Unlike standard Spin environments, certain features like SQLite storage, Redis triggers, and `wasi-blobstore`/`wasi-messaging` are not supported.\n\n## Version and Compatibility Notes\n\n- Spin CLI v0.6.0 or newer is required.\n- Limits are subject to change as part of public preview.\n- Cron jobs and scheduled tasks are currently in Tech Preview.\n- Runtime configuration is not supported at this time.",
+      "thinking": "",
+      "timing": {
+        "wall_seconds": 10.69134783395566,
+        "first_token_seconds": 2.455700166989118,
+        "prompt_tokens": 1633,
+        "prompt_tokens_per_second": 700.3516911234169,
+        "generation_tokens": 554,
+        "generation_tokens_per_second": 67.35680712935545,
+        "wall_tokens_per_second": 51.81760135429315,
+        "peak_memory_gb": 15.960546078,
+        "done_reason": "stop"
+      },
+      "output_metrics": {
+        "characters": 2180,
+        "words": 330,
+        "headings": [
+          "Runtime Constraints",
+          "Supported APIs and Syntax",
+          "Required Patterns",
+          "Common Mistakes and Gotchas",
+          "Version and Compatibility Notes"
+        ],
+        "unexpected_headings": [],
+        "code_fences": 1
+      }
+    }
+  ],
+  "mlx_load_seconds": 5.483796250075102
+}

@@ -47,3 +47,6 @@ CODEGEN_REFERENCE_PROMPT.md
 COMPILE_PROMPT.md
 docs/index.json
 
+# Supporting tools and tests
+scripts/
+tests/

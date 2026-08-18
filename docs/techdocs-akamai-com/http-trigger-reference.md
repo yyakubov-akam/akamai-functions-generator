@@ -1,67 +1,47 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/http-trigger-reference
-Date: 2026-08-16T10:57:45.812625
-Model: gpt-oss:120b-cloud
+Date: 2026-08-17T09:29:05.102479
+Model: glm-4.7-flash:q8_0
 ## Runtime Constraints
-* No explicit runtime constraints are documented in the source material.  
 
----
+- Akamai Functions currently supports only the `http` trigger type for Spin applications.
 
 ## Supported APIs and Syntax
-* `[[trigger.http]]` — TOML configuration block that registers an HTTP trigger for a Spin component.  
-  * `route = "/..."` — The URL path pattern that the trigger matches.  
-  * `component = "my-application"` — Name of the component that will handle requests matching the route.  
 
-* `request.headers["spin-full-url"]` — Header containing the full request URL, including scheme and host.  
-* `request.headers["spin-path-info"]` — Header containing the request path relative to the component’s route.  
-* `request.headers["spin-path-match-n"]` — Header (conditionally included) where **n** is the name of a single‑segment wildcard in the route; its value is the matched segment.  
-* `request.headers["spin-matched-route"]` — Header containing the portion of the trigger route that was matched, including any wildcard indicator.  
-* `request.headers["spin-raw-component-route"]` — Header containing the raw component route pattern that was matched, including any wildcard indicator.  
-* `request.headers["true-client-ip"]` — Header that returns the IP address of the original client that sent the request (e.g., `151.49.93.60`).  
-
----
+- `[[trigger.http]]` — Defines the HTTP trigger configuration block.
+- `route` — The route pattern the trigger matches.
+- `component` — The name of the component to handle the route.
+- `spin-full-url` — The full URL of the request including host and scheme.
+- `spin-path-info` — The request path relative to the component route.
+- `spin-path-match-n` — The wildcard segment value (where n is the segment name, e.g., `spin-path-match-userid`).
+- `spin-matched-route` — The matched part of the trigger route.
+- `spin-raw-component-route` — The component route pattern matched.
+- `true-client-ip` — The IP address of the client sending the request.
 
 ## Required Patterns
-### 1. Define an HTTP trigger in `spin.toml`
+
+### HTTP Trigger Configuration
+Use TOML syntax to define the trigger configuration at the root of the configuration file.
+
 ```toml
 [[trigger.http]]
-route = "/users/:userid"
-component = "user-service"
+route = "/..."
+component = "my-application"
 ```
 
-### 2. Access Spin‑provided request headers in a component (Node.js example)
-```js
-export async function handler(request) {
-  // Full URL of the incoming request
-  const fullUrl = request.headers["spin-full-url"];
+### Accessing Wildcard Parameters
+Access wildcard values from the request headers using the `spin-path-match-n` header name.
 
-  // Path relative to the component route
-  const pathInfo = request.headers["spin-path-info"];
-
-  // Value of a wildcard named `userid` in the route
-  const userId = request.headers["spin-path-match-userid"];
-
-  // Matched portion of the trigger route
-  const matchedRoute = request.headers["spin-matched-route"];
-
-  // Raw component route pattern
-  const rawComponentRoute = request.headers["spin-raw-component-route"];
-
-  // Original client IP
-  const clientIp = request.headers["true-client-ip"];
-
-  // ...your logic here...
-  return new Response(`User ${userId} requested ${fullUrl}`, { status: 200 });
-}
+```javascript
+// Access the 'userid' wildcard value from a route like /user/{userid}
+const userId = request.headers.get('spin-path-match-userid');
 ```
-
----
 
 ## Common Mistakes and Gotchas
-* Unlike standard Node.js/Express where the request URL is accessed via `req.url` or `req.originalUrl`, Akamai Functions does **not** populate those fields; you must read the full URL from the `spin-full-url` header.  
-* Unlike typical frameworks that expose route parameters directly on `req.params`, Akamai Functions provides wildcard values only through headers named `spin-path-match-<name>`.  
-* The `true-client-ip` header is **not** automatically added by all CDNs; it is only present when Akamai Functions injects it, so code should treat it as optional.  
 
----
+- Unlike standard Node.js environments, Akamai Functions injects specific Spin-related headers (`spin-*`) and the `true-client-ip` header into the request object.
+- The `spin-path-match-n` headers are conditionally included; they are only present if the route definition contains the corresponding wildcard segment.
 
 ## Version and Compatibility Notes
-* No version‑specific flags, bundle requirements, or phased‑rollout limitations are mentioned in the provided excerpt.  
+
+- Akamai Functions is built on Spin applications.
+- The `http` trigger type is the currently supported trigger type.

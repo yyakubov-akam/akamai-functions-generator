@@ -1,0 +1,32 @@
+name: Agent instructions
+
+on:
+  pull_request:
+    paths:
+      - AGENTS.md
+      - CLAUDE.md
+      - .agents/rules/project.md
+      - .github/copilot-instructions.md
+      - scripts/sync_agent_instructions.py
+      - tests/test_agent_instructions.py
+      - .github/workflows/agent-instructions.yml
+  push:
+    paths:
+      - AGENTS.md
+      - CLAUDE.md
+      - .agents/rules/project.md
+      - .github/copilot-instructions.md
+      - scripts/sync_agent_instructions.py
+      - tests/test_agent_instructions.py
+      - .github/workflows/agent-instructions.yml
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/sync_agent_instructions.py --check
+      - run: python -m unittest tests.test_agent_instructions -v

@@ -1,46 +1,25 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/list-and-inspect-your-applications
-Date: 2026-08-16T10:56:54.003302
-Model: gpt-oss:120b-cloud
+Date: 2026-08-17T09:26:14.116480
+Model: glm-4.7-flash:q8_0
 ## Required Patterns
 
-**List all applications (plain‑text)**
-```shell
-spin aka app list
-```
-
-**List all applications as JSON**
+List applications in JSON format
 ```shell
 spin aka app list --format json
 ```
 
-**List all applications with IDs (verbose)**
+List applications with verbose details (includes App IDs)
 ```shell
 spin aka app list --verbose
 ```
 
-**Inspect the linked application**
+Inspect application status in JSON format
 ```shell
-spin aka app status
+spin aka app status --app-name <app_name> --format json
 ```
-
-**Inspect a specific application by name**
-```shell
-spin aka app status --app-name <app-name>
-```
-
-**Inspect a specific application and get JSON output**
-```shell
-spin aka app status --app-name <app-name> --format json
-```
-
----
 
 ## Common Mistakes and Gotchas
 
-- **Unlike generic CLI tools that default to JSON, Akamai Functions commands output plain‑text by default.**  
-  *If you need machine‑readable data, you must add the `--format json` flag.*
+Unlike standard command-line behavior where `spin aka app list` might output detailed metadata by default, this command prints the name of each Spin application as plain text unless the `--verbose` flag is used.
 
-- **Unlike some CLI utilities that combine `--verbose` with JSON output, Akamai Functions treats `--verbose` as a separate mode that prints names with IDs in plain‑text.**  
-  *Do not expect `--verbose` to produce JSON; use `--format json` for that.*
-
----
+Unlike standard command-line behavior where `spin aka app status` might default to the current context, this command provides the status of the application your workspace is linked to unless the `--app-name` flag is specified.

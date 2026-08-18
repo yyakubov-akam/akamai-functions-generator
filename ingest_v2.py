@@ -4,7 +4,7 @@ from html import parser
 import os
 import re
 import json
-import ollama
+from ollama import Client
 import trafilatura
 import requests
 import xml.etree.ElementTree as ET
@@ -14,7 +14,16 @@ from typing import List
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 from crawl4ai.content_filter_strategy import PruningContentFilter
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
-from config import ARCHIVE_DIR, INDEX_FILE, MODEL, MIN_CONTENT_LENGTH, DEFAULT_SCRAPING_ORDER, SITE_SCRAPING_OVERRIDES
+from config import (
+    ARCHIVE_DIR,
+    INDEX_FILE,
+    MODEL,
+    MIN_CONTENT_LENGTH,
+    DEFAULT_SCRAPING_ORDER,
+    SITE_SCRAPING_OVERRIDES,
+    OLLAMA_HOST,
+    OLLAMA_MAX_TOKENS,
+)
 from change_detection import HeaderCheckResult, check_response_headers
 from markdown_source import DEFAULT_LLMS_INDEX, fetch_llms_urls, fetch_native_markdown
 import hashlib
@@ -23,6 +32,7 @@ import hashlib
 os.makedirs(ARCHIVE_DIR, exist_ok=True)
 PROMPT_FILE = os.path.join(os.path.dirname(__file__), "CODEGEN_REFERENCE_PROMPT.md")
 MAX_PROMPT_CONTENT_CHARS = 120000
+OLLAMA_CLIENT = Client(host=OLLAMA_HOST)
 
 
 async def check_all(force: bool = False):
@@ -377,10 +387,13 @@ def summarize(content: str) -> tuple[str, bool]:
     prompt_template = load_summary_prompt()
     source_was_truncated = len(content) > MAX_PROMPT_CONTENT_CHARS
     prompt = prompt_template.format(content=content[:MAX_PROMPT_CONTENT_CHARS])
-    response = ollama.chat(
+    response = OLLAMA_CLIENT.chat(
         model=MODEL,
         messages=[{"role": "user", "content": prompt}],
-        options={"temperature": 0.3},
+        options={
+            "temperature": 0.3,
+            "num_predict": OLLAMA_MAX_TOKENS,
+        },
     )
     return response["message"]["content"], source_was_truncated
 

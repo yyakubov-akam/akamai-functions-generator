@@ -1,85 +1,76 @@
 # Source: https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store
-Date: 2026-08-16T09:25:47.585878
-Model: gpt-oss:120b-cloud
+Date: 2026-08-17T08:48:07.218033
+Model: glm-4.7-flash:q8_0
 ## Runtime Constraints
-- Do not use the `wasi:keyvalue/atomic` interface; it is not supported.
-- Do not attempt to share a key‑value store between multiple Spin applications; stores are scoped to a single application.
-- Do not exceed the default key‑value query rate limits (limits can be raised per‑customer request).
-- Do not use any store label other than `"default"`; Akamai Functions only provisions the default label.
-- Do not rely on EdgeKV for persistence; the Akamai Functions key‑value store is a separate, incompatible capability.
-- When running locally, the store persists only in the SQLite file `.spin/sqlite_key_value.db` located in the workspace’s `.spin` directory.
+
+- Do not use the `wasi:keyvalue/atomic` interface
+- Key value stores are scoped to a single application and cannot be shared between applications
+- Query rates are limited to experimentation levels (can be increased via customer request)
+- Local testing uses SQLite (`sqlite_key_value.db`) located in the `.spin` folder
+- Akamai Functions manifest only allows the `"default"` label for `key_value_stores`
+- EdgeKV is not compatible with Akamai Functions
 
 ## Supported APIs and Syntax
-- `openDefault()` — Opens the provisioned key‑value store with the `"default"` label. Returns a `KvStore` instance.  
-- `KvStore.exists(key: string): boolean` — Returns `true` if the given key exists in the store.  
-- `KvStore.getJson<T>(key: string): T` — Retrieves and parses JSON data stored at the given key.  
-- `KvStore.setJson(key: string, value: any): void` — Serializes `value` to JSON and stores it at the given key.  
-- `KvStore.open(label: string): KvStore` — Opens a store with a custom label (use only if a non‑default label is provisioned).  
-- `new TextDecoder()` — Standard Web API for decoding `ArrayBuffer` payloads.  
-- `new Response(body?: BodyInit, init?: ResponseInit)` — Constructs an HTTP response.  
-- `AutoRouter()` (from `itty-router`) — Creates a router instance.  
-- `router.get(path: string, handler: (request: RequestInfo) => Response | Promise<Response>)` — Registers a GET handler.  
-- `router.post(path: string, handler: (request: RequestInfo) => Response | Promise<Response>)` — Registers a POST handler.  
-- `router.fetch(request: Request): Promise<Response>` — Handles an incoming request via the router.  
-- `addEventListener('fetch', (event: FetchEvent) => void)` — Registers the entry point for incoming HTTP requests.
+
+`openDefault()` — Opens the default key value store provisioned by the platform
+
+`store.exists(key)` — Checks if a key exists in the store
+
+`store.getJson(key)` — Retrieves JSON data associated with a key
+
+`store.setJson(key, payload)` — Stores JSON data at a specific key
+
+`AutoRouter` — HTTP router for handling routes (from `itt-router`)
+
+`addEventListener('fetch', handler)` — Entry point for handling incoming HTTP requests
 
 ## Required Patterns
-**Pattern: Router Setup & Event Listener**
-```js
-import { AutoRouter } from 'itty-router';
+
+### Manifest Configuration
+```toml
+[component.component-name]
+key_value_stores = [ "default" ]
+```
+
+### Import and Router Setup
+```javascript
+import { openDefault } from '@spinframework/spin-kv';
+import { AutoRouter } from 'itty-router'
+
 const router = AutoRouter();
 
 addEventListener('fetch', async (event) => {
-  event.respondWith(router.fetch(event.request));
+    event.respondWith(router.fetch(event.request));
 });
 ```
 
-**Pattern: GET /get/:key Handler**
-```js
-function handleGetValue(key) {
-  const store = openDefault();               // open default KV store
-  if (!store.exists(key)) {
+### Key Value Store Operations
+```javascript
+// Open store
+const store = openDefault();
+
+// Check existence
+if (!store.exists(key)) {
     return new Response(null, { status: 404 });
-  }
-  const data = store.getJson(key);
-  return new Response(JSON.stringify(data), {
-    status: 200,
-    headers: { "content-type": "application/json" },
-  });
 }
-router.get("/get/:key", ({ key }) => handleGetValue(key));
-```
 
-**Pattern: POST /set/:key Handler**
-```js
-const decoder = new TextDecoder();
+// Get JSON
+let found = store.getJson(key);
 
-async function handleSetValue(key, requestBody) {
-  const payload = JSON.parse(decoder.decode(requestBody));
-  if (!payload || !payload.firstName || !payload.lastName) {
-    return new Response(
-      "Invalid payload received.\nExpecting {\"firstName\": \"some\", \"lastName\": \"some\"}",
-      { status: 400 }
-    );
-  }
-  const store = openDefault();               // open default KV store
-  store.setJson(key, payload);
-  return new Response(null, { status: 200 });
-}
-router.post("/set/:key", async (req) =>
-  handleSetValue(req.params.key, await req.arrayBuffer())
-);
+// Set JSON
+store.setJson(key, payload);
 ```
 
 ## Common Mistakes and Gotchas
-- **Unlike** standard Node.js or browser environments, **Akamai Functions** does **not** support the `wasi:keyvalue/atomic` interface; attempts to use atomic operations will fail.
-- **Unlike** typical multi‑tenant key‑value services, **Akamai Functions** stores are **isolated per application**; you cannot access another app’s store.
-- **Unlike** EdgeKV, **Akamai Functions** provides its own globally replicated store; using EdgeKV APIs will not work.
-- **Unlike** a fresh local run, **Akamai Functions** automatically provisions a persistent store; you must declare the `"default"` label in `spin.toml` or the store will not be created.
-- **Unlike** a regular file system, the local test store persists only in `.spin/sqlite_key_value.db`; deleting this file clears all stored data.
+
+- Unlike standard Node.js, Akamai Functions does not support the `wasi:keyvalue/atomic` interface
+- Unlike standard Node.js, Akamai Functions does not support raw file I/O; use `openDefault()` instead
+- Unlike standard Node.js, Akamai Functions does not support EdgeKV
+- The `key_value_stores` label in `spin.toml` must be `"default"` for Akamai Functions deployment
 
 ## Version and Compatibility Notes
-- The key‑value store capability is **separate** from EdgeKV and is **not** compatible with EdgeKV APIs.
-- Only the `"default"` store label is currently provisioned automatically; custom labels require explicit provisioning (not covered in this tutorial).
-- The `@spinframework/spin-kv` package must be installed (`npm install @spinframework/spin-kv`) to access the KV APIs.
-- The tutorial assumes the **http‑js** Spin template; other templates may require different router setup.
+
+- Requires the `@spinframework/spin-kv` package
+- Requires `itt-router` (specifically `AutoRouter`)
+- Local development environment uses SQLite for persistence
+- Global store provides read-your-writes behavior within a request
