@@ -50,3 +50,4 @@ docs/index.json
 # Supporting tools and tests
 scripts/
 tests/
+benchmarks/
