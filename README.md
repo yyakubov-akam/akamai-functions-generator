@@ -70,18 +70,28 @@ deploy. You can always perform deployment manually instead.
 
 ## Build and run
 
-To build and test a generated function manually, change to its directory,
-build it, and start the local server:
+When the agent hands off a generated function, it has already run `spin build`,
+started it with `spin up`, and tested its HTTP behavior. If you are satisfied
+with those results, you can deploy it immediately:
 
 ```bash
 cd functions/<function-name>
-spin build
+spin aka deploy
+```
+
+Deployment is always a separate, explicit step. The agent runs
+`spin aka deploy` only when you explicitly prompt it to do so; otherwise, you
+run the command manually as shown above.
+
+Optionally, you can repeat the local test yourself before deploying. From the
+generated function directory, start the already-built application:
+
+```bash
 spin up
 ```
 
-`spin up` listens on port `3000` by default and remains running in the
-foreground. Keep that terminal open and, from another terminal, test the root
-endpoint:
+`spin up` listens on port `3000` by default and remains in the foreground.
+Keep that terminal open and, from another terminal, test the root endpoint:
 
 ```bash
 curl -i http://localhost:3000/
@@ -90,15 +100,12 @@ curl -i http://localhost:3000/
 Exercise any other routes supported by the function, then stop `spin up` with
 `Ctrl+C`.
 
-Deployment is a separate, explicit step. When you are ready to deploy, run it
-manually:
+If you modify the generated source or configuration after the agent's handoff,
+rebuild before testing or deploying:
 
 ```bash
-spin aka deploy
+spin build
 ```
-
-An AI agent will run this deployment command only when you explicitly prompt
-it to do so.
 
 ---
 
