@@ -31,13 +31,13 @@ DEFAULT_LLMS_URL = "https://techdocs.akamai.com/akamai-functions/docs/llms.txt"
 DEFAULT_SOURCE_DIR = PROJECT_ROOT / "docs" / "_source"
 DEFAULT_MANIFEST = PROJECT_ROOT / "docs" / "reference-manifest.json"
 DEFAULT_REFERENCE = PROJECT_ROOT / "docs" / "_compiled" / "functions-reference.md"
-DEFAULT_PROMPT = PROJECT_ROOT / "REFERENCE_COMPILATION.md"
+DEFAULT_CONTRACT = PROJECT_ROOT / "REFERENCE_COMPILATION.md"
 DEFAULT_METADATA = (
     PROJECT_ROOT / "docs" / "_compiled" / "functions-reference.meta.json"
 )
 
 MANIFEST_SCHEMA_VERSION = 1
-METADATA_SCHEMA_VERSION = 1
+METADATA_SCHEMA_VERSION = 2
 REQUEST_TIMEOUT_SECONDS = 30
 MAX_RETRIES = 3
 USER_AGENT = "aka-functions-reference-sync/1.0"
@@ -701,10 +701,11 @@ def finalize_reference(
     *,
     manifest_path: Path,
     reference_path: Path,
-    prompt_path: Path,
+    contract_path: Path,
     metadata_path: Path,
     project_root: Path,
 ) -> dict:
+    """Validate and record a publishable reference from any compiler workflow."""
     manifest, errors = verify_source_archive(manifest_path, project_root)
     errors.extend(
         validate_reference(
@@ -713,8 +714,8 @@ def finalize_reference(
             project_root=project_root,
         )
     )
-    if not prompt_path.is_file():
-        errors.append(f"Missing compilation instructions: {prompt_path}")
+    if not contract_path.is_file():
+        errors.append(f"Missing publication contract: {contract_path}")
     if errors:
         raise ReferenceSyncError("Cannot finalize reference:\n- " + "\n- ".join(errors))
     assert manifest is not None
@@ -725,8 +726,8 @@ def finalize_reference(
             1 for entry in manifest["sources"].values() if entry.get("active", True)
         ),
         "source_set_sha256": source_set_digest(manifest),
-        "compilation_prompt": _project_relative(prompt_path, project_root),
-        "compilation_prompt_sha256": sha256_file(prompt_path),
+        "publication_contract": _project_relative(contract_path, project_root),
+        "publication_contract_sha256": sha256_file(contract_path),
         "compiled_reference": _project_relative(reference_path, project_root),
         "compiled_reference_sha256": sha256_file(reference_path),
     }
@@ -738,7 +739,7 @@ def verify_reference(
     *,
     manifest_path: Path,
     reference_path: Path,
-    prompt_path: Path,
+    contract_path: Path,
     metadata_path: Path,
     project_root: Path,
 ) -> list[str]:
@@ -750,8 +751,8 @@ def verify_reference(
             project_root=project_root,
         )
     )
-    if not prompt_path.is_file():
-        errors.append(f"Missing compilation instructions: {prompt_path}")
+    if not contract_path.is_file():
+        errors.append(f"Missing publication contract: {contract_path}")
     if not metadata_path.is_file():
         errors.append(
             f"Missing compiled-reference metadata: {_display_path(metadata_path, project_root)}; "
@@ -779,10 +780,10 @@ def verify_reference(
         )
         if metadata.get("source_count") != expected_count:
             errors.append("Compiled-reference source count does not match the manifest")
-    if prompt_path.is_file() and metadata.get("compilation_prompt_sha256") != sha256_file(
-        prompt_path
-    ):
-        errors.append("Compiled reference is stale: compilation instructions have changed")
+    if contract_path.is_file() and metadata.get(
+        "publication_contract_sha256"
+    ) != sha256_file(contract_path):
+        errors.append("Compiled reference is stale: publication contract has changed")
     if reference_path.is_file() and metadata.get("compiled_reference_sha256") != sha256_file(
         reference_path
     ):
@@ -851,11 +852,19 @@ def build_parser() -> argparse.ArgumentParser:
     _add_sync_arguments(sync_parser)
 
     finalize_parser = subparsers.add_parser(
-        "finalize", help="Record that the compiled reference matches current sources"
+        "finalize",
+        help="Validate and record a publishable compiled reference",
     )
     finalize_parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     finalize_parser.add_argument("--reference", type=Path, default=DEFAULT_REFERENCE)
-    finalize_parser.add_argument("--prompt", type=Path, default=DEFAULT_PROMPT)
+    finalize_parser.add_argument(
+        "--contract",
+        "--prompt",
+        dest="contract",
+        type=Path,
+        default=DEFAULT_CONTRACT,
+        help="Publication contract; --prompt is retained as a compatibility alias",
+    )
     finalize_parser.add_argument("--metadata", type=Path, default=DEFAULT_METADATA)
 
     verify_parser = subparsers.add_parser(
@@ -863,7 +872,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     verify_parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     verify_parser.add_argument("--reference", type=Path, default=DEFAULT_REFERENCE)
-    verify_parser.add_argument("--prompt", type=Path, default=DEFAULT_PROMPT)
+    verify_parser.add_argument(
+        "--contract",
+        "--prompt",
+        dest="contract",
+        type=Path,
+        default=DEFAULT_CONTRACT,
+        help="Publication contract; --prompt is retained as a compatibility alias",
+    )
     verify_parser.add_argument("--metadata", type=Path, default=DEFAULT_METADATA)
     return parser
 
@@ -892,7 +908,7 @@ def main(argv: list[str] | None = None) -> int:
             metadata = finalize_reference(
                 manifest_path=args.manifest.resolve(),
                 reference_path=args.reference.resolve(),
-                prompt_path=args.prompt.resolve(),
+                contract_path=args.contract.resolve(),
                 metadata_path=args.metadata.resolve(),
                 project_root=PROJECT_ROOT,
             )
@@ -905,7 +921,7 @@ def main(argv: list[str] | None = None) -> int:
         errors = verify_reference(
             manifest_path=args.manifest.resolve(),
             reference_path=args.reference.resolve(),
-            prompt_path=args.prompt.resolve(),
+            contract_path=args.contract.resolve(),
             metadata_path=args.metadata.resolve(),
             project_root=PROJECT_ROOT,
         )

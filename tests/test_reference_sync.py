@@ -204,33 +204,38 @@ class ReferenceSyncTests(unittest.TestCase):
         self.assertIn(one_path.resolve(), downloads)
         self.assertEqual(one_path.read_bytes(), b"# One\n")
 
-    def test_finalize_and_verify_detect_stale_compiled_output(self):
+    def test_finalize_is_compiler_agnostic_and_detects_stale_output(self):
         upstream = FakeUpstream(
             [ONE_MD],
             {ONE_MD: document(b"# One\n", '"one-v1"')},
         )
         self.sync(upstream)
         reference_path = self.project_root / "docs" / "_compiled" / "reference.md"
-        prompt_path = self.project_root / "REFERENCE_COMPILATION.md"
+        contract_path = self.project_root / "REFERENCE_COMPILATION.md"
         metadata_path = self.project_root / "docs" / "_compiled" / "reference.meta.json"
         reference_path.parent.mkdir(parents=True)
         reference_path.write_text(reference_content(), encoding="utf-8")
-        prompt_path.write_text("Compile only grounded facts.\n", encoding="utf-8")
+        contract_path.write_text("Publish only grounded facts.\n", encoding="utf-8")
 
         metadata = finalize_reference(
             manifest_path=self.manifest_path,
             reference_path=reference_path,
-            prompt_path=prompt_path,
+            contract_path=contract_path,
             metadata_path=metadata_path,
             project_root=self.project_root,
         )
 
         self.assertEqual(metadata["source_count"], 1)
         self.assertEqual(
+            metadata["publication_contract"],
+            "REFERENCE_COMPILATION.md",
+        )
+        self.assertNotIn("compilation_prompt", metadata)
+        self.assertEqual(
             verify_reference(
                 manifest_path=self.manifest_path,
                 reference_path=reference_path,
-                prompt_path=prompt_path,
+                contract_path=contract_path,
                 metadata_path=metadata_path,
                 project_root=self.project_root,
             ),
@@ -241,7 +246,7 @@ class ReferenceSyncTests(unittest.TestCase):
         errors = verify_reference(
             manifest_path=self.manifest_path,
             reference_path=reference_path,
-            prompt_path=prompt_path,
+            contract_path=contract_path,
             metadata_path=metadata_path,
             project_root=self.project_root,
         )
@@ -255,7 +260,7 @@ class ReferenceSyncTests(unittest.TestCase):
         )
         self.sync(upstream)
         reference_path = self.project_root / "docs" / "_compiled" / "reference.md"
-        prompt_path = self.project_root / "REFERENCE_COMPILATION.md"
+        contract_path = self.project_root / "REFERENCE_COMPILATION.md"
         metadata_path = self.project_root / "docs" / "_compiled" / "reference.meta.json"
         reference_path.parent.mkdir(parents=True)
         incomplete = reference_content().replace(
@@ -263,7 +268,7 @@ class ReferenceSyncTests(unittest.TestCase):
             "",
         )
         reference_path.write_text(incomplete, encoding="utf-8")
-        prompt_path.write_text("Compile only grounded facts.\n", encoding="utf-8")
+        contract_path.write_text("Publish only grounded facts.\n", encoding="utf-8")
 
         with self.assertRaisesRegex(
             ReferenceSyncError,
@@ -272,7 +277,7 @@ class ReferenceSyncTests(unittest.TestCase):
             finalize_reference(
                 manifest_path=self.manifest_path,
                 reference_path=reference_path,
-                prompt_path=prompt_path,
+                contract_path=contract_path,
                 metadata_path=metadata_path,
                 project_root=self.project_root,
             )

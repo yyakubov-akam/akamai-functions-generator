@@ -1,7 +1,17 @@
-# Akamai Functions Reference Compilation Contract
+# Akamai Functions Reference Publication and Recompilation Contract
 
-Use this contract with the dependency-free source workflow in
-`scripts/reference_sync.py`.
+This contract serves two purposes:
+
+1. It defines the portable recompilation process used by public clones with
+   `scripts/reference_sync.py`.
+2. It defines the publication gate for `docs/_compiled/functions-reference.md`,
+   regardless of which workflow produced the candidate.
+
+A candidate may be generated directly from exact sources, from locally
+maintained summaries, or through any number of compiler, critique, and revision
+passes. The generation process does not need to be public. Before publication,
+the final candidate must be audited against every active exact source and meet
+all grounding, structure, attribution, and coverage requirements below.
 
 ## Inputs
 
@@ -9,10 +19,16 @@ Use this contract with the dependency-free source workflow in
 - Compile only entries whose `active` field is `true`.
 - Each entry's `filepath` points to exact upstream Markdown stored beneath
   `docs/_source/`.
-- Do not use any other documentation tree as a compilation input.
 
-Read every active source before compiling. Rebuild the complete reference
-rather than incrementally patching only the apparently affected section.
+When a public agent recompiles the reference, read every active exact source
+and do not substitute another documentation tree. Rebuild the complete
+reference rather than incrementally patching only the apparently affected
+section.
+
+An alternate local workflow may use private summaries or other intermediate
+artifacts to produce its candidate. Those intermediates do not replace the
+final exact-source audit: every published claim, attribution, and coverage
+decision must still be checked against the active exact sources above.
 
 ## Grounding rules
 
@@ -92,7 +108,7 @@ coverage, not a substitute for incorporating useful facts into the reference.
 
 ## Completion checks
 
-After writing the reference, run:
+After writing, critiquing, and revising the final candidate, run:
 
 ```bash
 python3 scripts/reference_sync.py finalize
@@ -100,9 +116,17 @@ python3 scripts/reference_sync.py verify
 python3 -m unittest tests.test_reference_sync -v
 ```
 
-`finalize` records hashes for the active source set, this compilation contract,
-and the compiled reference. `verify` is offline and must pass before the new
-workflow is considered current.
+Run `finalize` only once all compilation and critique passes are complete. It
+validates the publication structure and records hashes for the active source
+set, this contract, and the compiled reference. The metadata is a freshness
+record, not a declaration of which compiler, model, prompt, or number of passes
+produced the artifact.
+
+`verify` is offline and must pass before the compiled reference is published
+or considered current. It detects later changes to the exact sources, this
+contract, or the finalized artifact; it cannot by itself prove that every
+prose claim is semantically correct, which is why the exact-source audit is a
+required compilation step.
 
 Before running `finalize`, also confirm that:
 

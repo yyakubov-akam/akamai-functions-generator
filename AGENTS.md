@@ -11,6 +11,10 @@ Before writing any code, read `docs/_compiled/functions-reference.md`.
 
 ## Reference Maintenance
 
+The checked-in reference is a curated generated artifact and may have been
+prepared by any compilation workflow. When updating it in a public clone, use
+the portable exact-source process below.
+
 When asked to check or update the Akamai Functions reference, use the
 dependency-free workflow in `scripts/reference_sync.py`:
 
@@ -40,6 +44,30 @@ Before implementing:
 Write every generated function to `functions/<function_name>/`, where
 `<function_name>` is a short, descriptive, lowercase-hyphenated name derived
 from the task, such as `echo-request-headers` or `geo-based-redirect`.
+
+## Document the Function for Users
+
+Every generated function must include a function-specific `README.md`. Replace
+any generic README inherited from a Spin template; leaving scaffold
+documentation unchanged is not a complete handoff.
+
+Write the README for a human who needs to understand, configure, run, and call
+the function. Keep it concise, but include the following when applicable:
+
+- A plain-language summary of what the function does and its intended use.
+- Supported routes and methods, including relevant query parameters, headers,
+  request bodies, response bodies, HTTP status codes, and error behavior.
+- Required configuration, variables, secrets, capabilities, and allowed
+  outbound hosts.
+- Exact commands for installing dependencies, building, and running locally.
+- Copy-pasteable request examples, such as `curl` commands, for the main usage
+  and important failure cases.
+- Manual deployment instructions and any relevant operational, security, or
+  platform limitations.
+
+Omit irrelevant sections rather than adding boilerplate. Before handoff, check
+the README against the generated source and `spin.toml` so that its commands,
+configuration, and behavior are accurate.
 
 ## Build and Test Before Handoff
 

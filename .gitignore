@@ -38,9 +38,10 @@ change_detection.py
 markdown_source.py
 CODEGEN_REFERENCE_PROMPT.md
 COMPILE_PROMPT.md
-LOCAL_WORKFLOW.md
+REPOSITORY_WORKFLOWS.md
 docs/index.json
 docs/techdocs-akamai-com/
+docs/_working/
 tests/test_change_detection.py
 tests/test_markdown_source.py
 requirements-local.txt

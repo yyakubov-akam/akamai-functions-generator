@@ -141,10 +141,17 @@ the exact upstream Markdown, and stores a deterministic manifest. It uses only
 Python's standard library and does not require model downloads, browser
 automation, or API credentials.
 
-The authoritative inputs are the active exact sources in
-`docs/reference-manifest.json` and the compilation contract in
-`REFERENCE_COMPILATION.md`. `docs/_compiled/functions-reference.md` is a
-generated artifact that is rebuilt whenever either input changes.
+`docs/_compiled/functions-reference.md` is a curated generated artifact that is
+included in the repository so every clone starts with a usable reference. The
+repository maintainer may prepare it with the public workflow or another local
+single-pass or multi-pass compilation process. The compiler is intentionally
+not prescribed.
+
+For publication and portable updates, the authoritative freshness inputs are
+the active exact sources in `docs/reference-manifest.json` and the contract in
+`REFERENCE_COMPILATION.md`. A locally produced candidate is publishable after
+it is audited against those exact sources, satisfies the contract, and passes
+`finalize` and `verify`.
 
 Ask your coding agent:
 
@@ -165,8 +172,8 @@ python3 scripts/reference_sync.py sync
 # Always check local freshness, even when the upstream check found no changes.
 python3 scripts/reference_sync.py verify
 
-# If verification reports missing/stale metadata, recompile according to
-# REFERENCE_COMPILATION.md, then record and verify the result:
+# If verification reports missing/stale metadata, recompile according to the
+# public process in REFERENCE_COMPILATION.md, then record and verify the result:
 python3 scripts/reference_sync.py finalize
 python3 scripts/reference_sync.py verify
 ```
@@ -178,10 +185,12 @@ snapshots are retained and marked inactive rather than deleted.
 
 `verify` is entirely offline. It checks exact-source hashes, required section
 order, source coverage, local attribution links, and confirms that the active
-source set, compilation contract, and compiled reference match the hashes
-recorded by `finalize`. Agents run it after every upstream check, so a manual
-synchronization, changed compilation contract, or edited compiled reference
-cannot be mistaken for a current reference.
+source set, publication contract, and compiled reference match the hashes
+recorded by `finalize`. The metadata is a freshness record, not compiler
+provenance: the finalized reference may have been created by any compilation
+workflow. Agents run `verify` after every upstream check, so a manual
+synchronization, changed contract, or edited compiled reference cannot be
+mistaken for a current reference.
 
 For CI-style detection, `check --fail-on-changes` exits with status `3` when a
 sync would change the repository. Ordinary `check` always reports changes
@@ -212,7 +221,7 @@ maintenance files from being accidentally committed.
 │       └── reference-sync.yml      # Verifies generated reference freshness
 ├── AGENTS.md                       # Canonical instructions for every agent
 ├── CLAUDE.md                       # Claude Code imports AGENTS.md
-├── REFERENCE_COMPILATION.md        # Exact-source compilation contract
+├── REFERENCE_COMPILATION.md        # Publication and public rebuild contract
 ├── docs/
 │   ├── _source/                    # Exact upstream Markdown
 │   ├── _compiled/

@@ -16,6 +16,7 @@ PRIVATE_EXACT_PATHS = frozenset(
         "CODEGEN_REFERENCE_PROMPT.md",
         "COMPILE_PROMPT.md",
         "LOCAL_WORKFLOW.md",
+        "REPOSITORY_WORKFLOWS.md",
         "change_detection.py",
         "config.py",
         "docs/index.json",
@@ -29,6 +30,7 @@ PRIVATE_EXACT_PATHS = frozenset(
     }
 )
 PRIVATE_PATH_PREFIXES = (
+    "docs/_working/",
     "docs/techdocs-akamai-com/",
     "functions/",
 )

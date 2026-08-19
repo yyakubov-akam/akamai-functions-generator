@@ -11,13 +11,17 @@ class PublicBoundaryTests(unittest.TestCase):
                     "README.md",
                     "ingest_v2.py",
                     "docs/techdocs-akamai-com/faq.md",
+                    "docs/_working/functions-reference-pass-1.md",
                     "functions/example/src/index.js",
                     "scripts/reference_sync.py",
                     "CODEGEN_REFERENCE_PROMPT.md",
+                    "REPOSITORY_WORKFLOWS.md",
                 ]
             ),
             [
                 "CODEGEN_REFERENCE_PROMPT.md",
+                "REPOSITORY_WORKFLOWS.md",
+                "docs/_working/functions-reference-pass-1.md",
                 "docs/techdocs-akamai-com/faq.md",
                 "functions/example/src/index.js",
                 "ingest_v2.py",
