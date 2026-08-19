@@ -31,10 +31,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m unittest tests.test_reference_sync -v
-      - name: Verify initialized compiled-reference metadata
-        run: |
-          if [ -f docs/reference-manifest.json ] && [ -f docs/_compiled/functions-reference.meta.json ]; then
-            python scripts/reference_sync.py verify
-          else
-            echo "Exact-source workflow is not initialized yet; skipping freshness verification."
-          fi
+      - name: Verify compiled-reference metadata and structure
+        run: python scripts/reference_sync.py verify

@@ -136,16 +136,15 @@ pull requests.
 
 ## Keeping the reference up to date
 
-Two maintenance workflows are available during the migration away from a
-machine-specific LLM setup. They use separate source directories and do not
-overwrite each other's inputs.
-
-### Dependency-free agent workflow (recommended)
-
 `scripts/reference_sync.py` discovers pages from Akamai's `llms.txt`, downloads
 the exact upstream Markdown, and stores a deterministic manifest. It uses only
-Python's standard library; it does not require Ollama, model downloads, browser
+Python's standard library and does not require model downloads, browser
 automation, or API credentials.
+
+The authoritative inputs are the active exact sources in
+`docs/reference-manifest.json` and the compilation contract in
+`REFERENCE_COMPILATION.md`. `docs/_compiled/functions-reference.md` is a
+generated artifact that is rebuilt whenever either input changes.
 
 Ask your coding agent:
 
@@ -177,83 +176,25 @@ currently published pages as additions. Later runs report additions, content
 changes, reactivations, and pages removed from `llms.txt`. Removed source
 snapshots are retained and marked inactive rather than deleted.
 
-`verify` is entirely offline. It checks exact-source hashes and confirms that
-the active source set, compilation contract, and compiled reference match the
-hashes recorded by `finalize`. Agents run it after every upstream check, so a
-manual synchronization, changed compilation contract, or edited compiled
-reference cannot be mistaken for a current reference.
+`verify` is entirely offline. It checks exact-source hashes, required section
+order, source coverage, local attribution links, and confirms that the active
+source set, compilation contract, and compiled reference match the hashes
+recorded by `finalize`. Agents run it after every upstream check, so a manual
+synchronization, changed compilation contract, or edited compiled reference
+cannot be mistaken for a current reference.
 
 For CI-style detection, `check --fail-on-changes` exits with status `3` when a
 sync would change the repository. Ordinary `check` always reports changes
 without treating them as an execution failure.
 
-### Legacy Ollama workflow (retained)
-
-The original compiled-reference inputs under `docs/techdocs-akamai-com/` are
-LLM summaries. `ingest_v2.py` continues to manage fetching, change detection,
-Ollama summarization, and the legacy recompilation workflow.
-
-#### Setup
+The public repository boundary is checked with:
 
 ```bash
-pip install crawl4ai trafilatura requests ollama
+python3 scripts/check_public_boundary.py
 ```
 
-Requires access to an [Ollama](https://ollama.com/) instance. Configure its
-host, model, and generation ceiling in `config.py`, or override them with the
-`OLLAMA_HOST`, `OLLAMA_MODEL`, and `OLLAMA_MAX_TOKENS` environment variables.
-
-#### Check for new and updated documentation
-
-```bash
-# Discover pages from the Akamai Functions Guides llms.txt, then check every
-# indexed page using ETag/Last-Modified. New and changed pages are downloaded
-# as native Markdown and summarized. Other extractors remain as fallbacks.
-python ingest_v2.py --check
-
-# Force reingestion of every page after discovery:
-python ingest_v2.py --check --force
-```
-
-`--force` only modifies the `--check` workflow. Running `python ingest_v2.py
---force` by itself prints the command help and does not ingest anything. Model
-changes are not part of ETag or content-hash change detection, so use
-`--check --force` when every existing article must be summarized with a newly
-configured model.
-
-Existing entries without stored ETags may be reingested once to establish the
-native-Markdown validator baseline.
-
-#### Discover links without checking content
-
-```bash
-# Register newly published pages without downloading or summarizing them:
-python ingest_v2.py --llms
-
-# A different llms.txt index can also be supplied explicitly, including with
-# the complete check workflow:
-python ingest_v2.py --check --llms https://example.com/docs/llms.txt
-```
-
-#### Ingest a single URL
-
-```bash
-python ingest_v2.py https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store
-```
-
-#### Crawl an entire sitemap (fallback discovery)
-
-```bash
-python ingest_v2.py --sitemap https://techdocs.akamai.com/sitemap.xml --prefix akamai-functions
-```
-
-#### Recompile the master reference
-
-After reingesting, ask your AI agent to recompile the master reference using the prompt in `COMPILE_PROMPT.md`:
-
-```
-Recompile docs/_compiled/functions-reference.md following the instructions in COMPILE_PROMPT.md
-```
+This command and its always-running pull-request workflow prevent private local
+maintenance files from being accidentally committed.
 
 ---
 
@@ -266,47 +207,23 @@ Recompile docs/_compiled/functions-reference.md following the instructions in CO
 ├── .github/
 │   ├── copilot-instructions.md     # Generated Copilot compatibility copy
 │   └── workflows/
-│       └── agent-instructions.yml  # Prevents instruction drift
+│       ├── agent-instructions.yml  # Prevents instruction drift
+│       ├── public-boundary.yml     # Rejects private local files
+│       └── reference-sync.yml      # Verifies generated reference freshness
 ├── AGENTS.md                       # Canonical instructions for every agent
 ├── CLAUDE.md                       # Claude Code imports AGENTS.md
 ├── REFERENCE_COMPILATION.md        # Exact-source compilation contract
-├── change_detection.py             # HTTP validator checks for ingestion
-├── config.py                       # Paths, model, and scraping settings
 ├── docs/
-│   ├── _source/                    # Exact upstream Markdown (new workflow)
+│   ├── _source/                    # Exact upstream Markdown
 │   ├── _compiled/
 │   │   ├── functions-reference.md  # ← Every agent reads this reference
-│   │   └── functions-reference.meta.json # New-workflow freshness hashes
-│   ├── reference-manifest.json     # Exact-source inventory and hashes
-│   └── techdocs-akamai-com/        # Legacy Ollama-generated summaries
-│       ├── aka-command-reference.md
-│       ├── application-logs.md
-│       ├── build-a-supabase-cache-proxy.md
-│       ├── delete-an-application.md
-│       ├── deploy-app-variables.md
-│       ├── deploy-using-github-actions.md
-│       ├── faq.md
-│       ├── http-trigger-reference.md
-│       ├── integrate-with-property-manager.md
-│       ├── link-an-application.md
-│       ├── list-and-inspect-your-applications.md
-│       ├── manage-accounts.md
-│       ├── query-relational-databases-mysql.md
-│       ├── query-relational-databases-postgresql.md
-│       ├── quickstart.md
-│       ├── quotas-and-limits.md
-│       ├── related-standards.md
-│       ├── schedule-tasks-with-cron-jobs-in-spin.md
-│       ├── stream-data-from-linode-object-store.md
-│       ├── update-an-application.md
-│       ├── use-the-key-value-store.md
-│       ├── webassembly-language-support-matrix.md
-│       └── welcome.md
-├── ingest_v2.py                    # Main documentation ingestion pipeline
-├── markdown_source.py              # llms.txt discovery and native Markdown fetching
+│   │   └── functions-reference.meta.json # Freshness hashes
+│   └── reference-manifest.json     # Exact-source inventory and hashes
 ├── scripts/
+│   ├── check_public_boundary.py    # Prevents private-file publication
 │   ├── reference_sync.py           # Dependency-free exact-source workflow
 │   └── sync_agent_instructions.py  # Regenerates Copilot instructions
+├── tests/                           # Public workflow and instruction tests
 └── functions/                      # Generated functions go here
     └── <function-name>/
         ├── src/index.js

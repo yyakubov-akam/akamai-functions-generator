@@ -40,12 +40,22 @@ functions/swedish-tutor/
 frontend/
 .github/skills/
 
-# ─── Ingestion tooling (out of scope for v1) ──────────────────────────────────
+# ─── Private local documentation workflow ─────────────────────────────────────
+# These files remain available in the owner's working copy but are intentionally
+# excluded from the public repository. CI also rejects them if force-added.
 ingest.py
+ingest_v2.py
 config.py
+change_detection.py
+markdown_source.py
 CODEGEN_REFERENCE_PROMPT.md
 COMPILE_PROMPT.md
+LOCAL_WORKFLOW.md
 docs/index.json
+docs/techdocs-akamai-com/
+tests/test_change_detection.py
+tests/test_markdown_source.py
+requirements-local.txt
 
 # Supporting tools and tests
 scripts/
@@ -57,8 +67,10 @@ benchmarks/
 !scripts/
 scripts/*
 !scripts/reference_sync.py
+!scripts/check_public_boundary.py
 !scripts/sync_agent_instructions.py
 !tests/
 tests/*
 !tests/test_agent_instructions.py
+!tests/test_public_boundary.py
 !tests/test_reference_sync.py

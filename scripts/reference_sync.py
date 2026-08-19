@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Synchronize exact Akamai Functions Markdown sources without an LLM.
 
-This workflow intentionally lives beside the legacy ``ingest_v2.py`` pipeline.
-It discovers native Markdown through ``llms.txt``, stores exact source bytes,
-and maintains hashes that let an agent determine whether the compiled reference
-is current. It uses only Python's standard library.
+The workflow discovers native Markdown through ``llms.txt``, stores exact
+source bytes, and maintains hashes that let an agent determine whether the
+compiled reference is current. It uses only Python's standard library.
 """
 
 from __future__ import annotations
@@ -54,6 +53,12 @@ REQUIRED_REFERENCE_HEADINGS = (
     "## 5. Cross-Reference",
     "## 6. Known Failure Patterns",
 )
+SOURCE_COVERAGE_HEADING = "### Source Coverage"
+COVERAGE_ROW = re.compile(
+    r"^\|\s*\[[^\]]+\]\(([^)]+)\)\s*\|\s*(Included|Excluded)\s*\|\s*(.*?)\s*\|\s*$"
+)
+NUMBERED_SUBSECTION_HEADING = re.compile(r"^###\s+(\d+\.\d+)\b", re.MULTILINE)
+SECTION_REFERENCE = re.compile(r"§(\d+\.\d+)\b")
 
 
 class ReferenceSyncError(RuntimeError):
@@ -574,17 +579,121 @@ def verify_source_archive(manifest_path: Path, project_root: Path) -> tuple[dict
     return manifest, errors
 
 
-def validate_reference(reference_path: Path) -> list[str]:
+def _relative_reference_target(
+    source_path: Path, reference_path: Path
+) -> str:
+    return Path(
+        os.path.relpath(source_path.resolve(), reference_path.parent.resolve())
+    ).as_posix()
+
+
+def validate_reference(
+    reference_path: Path,
+    *,
+    manifest: dict | None = None,
+    project_root: Path = PROJECT_ROOT,
+) -> list[str]:
     if not reference_path.is_file():
         return [f"Missing compiled reference: {reference_path}"]
     content = reference_path.read_text(encoding="utf-8")
-    errors = [
-        f"Compiled reference is missing required heading: {heading}"
-        for heading in REQUIRED_REFERENCE_HEADINGS
-        if heading not in content
+    errors: list[str] = []
+    actual_headings = [
+        line for line in content.splitlines() if line.startswith("## ")
     ]
+    if actual_headings != list(REQUIRED_REFERENCE_HEADINGS):
+        errors.append(
+            "Compiled reference top-level headings must appear exactly once in "
+            "the required order"
+        )
     if content.count("```") % 2:
         errors.append("Compiled reference contains an unbalanced fenced code block")
+
+    link_targets = MARKDOWN_LINK.findall(content)
+    source_link_targets: list[str] = []
+    for target in link_targets:
+        path_target = target.split("#", 1)[0]
+        if "_source/" not in path_target:
+            continue
+        if not path_target.startswith("../_source/"):
+            errors.append(
+                f"Exact-source link must be relative to the compiled file: {target}"
+            )
+            continue
+        source_link_targets.append(path_target)
+        resolved = (reference_path.parent / path_target).resolve()
+        try:
+            resolved.relative_to(project_root.resolve())
+        except ValueError:
+            errors.append(f"Exact-source link escapes the project root: {target}")
+            continue
+        if not resolved.is_file():
+            errors.append(f"Broken exact-source link in compiled reference: {target}")
+
+    if manifest is None:
+        return errors
+
+    active_targets: dict[str, str] = {}
+    for url, entry in sorted(manifest["sources"].items()):
+        if not entry.get("active", True):
+            continue
+        source_path = _resolve_manifest_path(entry["filepath"], project_root)
+        target = _relative_reference_target(source_path, reference_path)
+        if target in active_targets:
+            errors.append(
+                "Active manifest entries share a compiled-reference target: "
+                f"{target}"
+            )
+        active_targets[target] = url
+
+    lines = content.splitlines()
+    try:
+        coverage_start = lines.index(SOURCE_COVERAGE_HEADING) + 1
+    except ValueError:
+        errors.append("Compiled reference is missing the Source Coverage table")
+        return errors
+
+    coverage_rows: list[tuple[str, str, str]] = []
+    for line in lines[coverage_start:]:
+        if line.startswith("## ") or line.strip() == "---":
+            break
+        match = COVERAGE_ROW.match(line)
+        if match:
+            target, status, detail = match.groups()
+            coverage_rows.append((target.split("#", 1)[0], status, detail.strip()))
+
+    row_counts: dict[str, int] = {}
+    available_sections = set(NUMBERED_SUBSECTION_HEADING.findall(content))
+    for target, status, detail in coverage_rows:
+        row_counts[target] = row_counts.get(target, 0) + 1
+        if target not in active_targets:
+            errors.append(f"Source Coverage contains a non-active source: {target}")
+            continue
+        if status == "Included":
+            referenced_sections = SECTION_REFERENCE.findall(detail)
+            if not referenced_sections:
+                errors.append(
+                    f"Included source has no compiled subsection reference: {target}"
+                )
+            for section in referenced_sections:
+                if section not in available_sections:
+                    errors.append(
+                        f"Source Coverage references a missing subsection §{section}: "
+                        f"{target}"
+                    )
+            if source_link_targets.count(target) < 2:
+                errors.append(
+                    "Included source is not attributed outside Source Coverage: "
+                    f"{target}"
+                )
+        elif not detail:
+            errors.append(f"Excluded source has no source-specific reason: {target}")
+
+    for target in active_targets:
+        count = row_counts.get(target, 0)
+        if count == 0:
+            errors.append(f"Active source is missing from Source Coverage: {target}")
+        elif count > 1:
+            errors.append(f"Active source has duplicate Source Coverage rows: {target}")
     return errors
 
 
@@ -597,7 +706,13 @@ def finalize_reference(
     project_root: Path,
 ) -> dict:
     manifest, errors = verify_source_archive(manifest_path, project_root)
-    errors.extend(validate_reference(reference_path))
+    errors.extend(
+        validate_reference(
+            reference_path,
+            manifest=manifest,
+            project_root=project_root,
+        )
+    )
     if not prompt_path.is_file():
         errors.append(f"Missing compilation instructions: {prompt_path}")
     if errors:
@@ -628,7 +743,13 @@ def verify_reference(
     project_root: Path,
 ) -> list[str]:
     manifest, errors = verify_source_archive(manifest_path, project_root)
-    errors.extend(validate_reference(reference_path))
+    errors.extend(
+        validate_reference(
+            reference_path,
+            manifest=manifest,
+            project_root=project_root,
+        )
+    )
     if not prompt_path.is_file():
         errors.append(f"Missing compilation instructions: {prompt_path}")
     if not metadata_path.is_file():

@@ -6,6 +6,7 @@ from pathlib import Path
 from scripts.reference_sync import (
     HttpResult,
     REQUIRED_REFERENCE_HEADINGS,
+    ReferenceSyncError,
     apply_sync,
     finalize_reference,
     inspect_upstream,
@@ -66,7 +67,31 @@ def document(body, etag):
 
 
 def reference_content():
-    return "# Test reference\n\n" + "\n\n".join(REQUIRED_REFERENCE_HEADINGS) + "\n"
+    source_target = "../_source/docs-example-test/one.md"
+    return f"""# Test reference
+
+{REQUIRED_REFERENCE_HEADINGS[0]}
+
+{REQUIRED_REFERENCE_HEADINGS[1]}
+
+{REQUIRED_REFERENCE_HEADINGS[2]}
+
+{REQUIRED_REFERENCE_HEADINGS[3]}
+
+{REQUIRED_REFERENCE_HEADINGS[4]}
+
+### 5.1 Test coverage
+
+**Source:** [one.md]({source_target})
+
+### Source Coverage
+
+| Active exact source | Status | Compiled coverage or exclusion reason |
+|---|---|---|
+| [one.md]({source_target}) | Included | §5.1 Test coverage |
+
+{REQUIRED_REFERENCE_HEADINGS[5]}
+"""
 
 
 class ReferenceSyncTests(unittest.TestCase):
@@ -222,6 +247,35 @@ class ReferenceSyncTests(unittest.TestCase):
         )
 
         self.assertIn("Compiled reference changed after it was finalized", errors)
+
+    def test_finalize_rejects_incomplete_source_coverage(self):
+        upstream = FakeUpstream(
+            [ONE_MD],
+            {ONE_MD: document(b"# One\n", '"one-v1"')},
+        )
+        self.sync(upstream)
+        reference_path = self.project_root / "docs" / "_compiled" / "reference.md"
+        prompt_path = self.project_root / "REFERENCE_COMPILATION.md"
+        metadata_path = self.project_root / "docs" / "_compiled" / "reference.meta.json"
+        reference_path.parent.mkdir(parents=True)
+        incomplete = reference_content().replace(
+            "| [one.md](../_source/docs-example-test/one.md) | Included | §5.1 Test coverage |\n",
+            "",
+        )
+        reference_path.write_text(incomplete, encoding="utf-8")
+        prompt_path.write_text("Compile only grounded facts.\n", encoding="utf-8")
+
+        with self.assertRaisesRegex(
+            ReferenceSyncError,
+            "Active source is missing from Source Coverage",
+        ):
+            finalize_reference(
+                manifest_path=self.manifest_path,
+                reference_path=reference_path,
+                prompt_path=prompt_path,
+                metadata_path=metadata_path,
+                project_root=self.project_root,
+            )
 
     def test_manifest_is_deterministic_json(self):
         upstream = FakeUpstream(

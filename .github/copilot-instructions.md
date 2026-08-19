@@ -24,10 +24,6 @@ dependency-free workflow in `scripts/reference_sync.py`:
    `python3 scripts/reference_sync.py finalize`.
 5. Run `python3 scripts/reference_sync.py verify` again and require it to pass.
 
-The legacy `ingest_v2.py` Ollama workflow remains available during migration.
-Do not modify or remove its summaries when using the new synchronization
-workflow.
-
 ## Think Before Coding
 
 Don't assume. Don't hide confusion. Surface tradeoffs.
