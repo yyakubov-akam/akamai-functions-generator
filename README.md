@@ -69,7 +69,7 @@ After generating the function, the agent will also:
 The agent will **not** run `spin aka deploy` unless you explicitly ask it to
 deploy. You can always perform deployment manually instead.
 
-## Build and run
+## Provision
 
 When the agent hands off a generated function, it has already run `spin build`,
 started it with `spin up`, and tested its HTTP behavior. If you are satisfied

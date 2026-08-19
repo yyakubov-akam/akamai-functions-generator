@@ -4,13 +4,14 @@ from scripts.check_public_boundary import find_private_paths, tracked_paths
 
 
 class PublicBoundaryTests(unittest.TestCase):
-    def test_finds_private_exact_paths_and_summary_directory(self):
+    def test_finds_local_workflow_and_generated_function_paths(self):
         self.assertEqual(
             find_private_paths(
                 [
                     "README.md",
                     "ingest_v2.py",
                     "docs/techdocs-akamai-com/faq.md",
+                    "functions/example/src/index.js",
                     "scripts/reference_sync.py",
                     "CODEGEN_REFERENCE_PROMPT.md",
                 ]
@@ -18,6 +19,7 @@ class PublicBoundaryTests(unittest.TestCase):
             [
                 "CODEGEN_REFERENCE_PROMPT.md",
                 "docs/techdocs-akamai-com/faq.md",
+                "functions/example/src/index.js",
                 "ingest_v2.py",
             ],
         )

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail when private local-workflow files are tracked by Git."""
+"""Fail when local-only files are tracked by Git."""
 
 from __future__ import annotations
 
@@ -30,6 +30,7 @@ PRIVATE_EXACT_PATHS = frozenset(
 )
 PRIVATE_PATH_PREFIXES = (
     "docs/techdocs-akamai-com/",
+    "functions/",
 )
 
 
@@ -73,8 +74,7 @@ def main() -> int:
 
     if private_paths:
         print(
-            "Public-boundary check failed. Private local-workflow files are "
-            "tracked:",
+            "Public-boundary check failed. Local-only files are tracked:",
             file=sys.stderr,
         )
         for path in private_paths:
