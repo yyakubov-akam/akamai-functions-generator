@@ -1,0 +1,40 @@
+name: Reference synchronization
+
+on:
+  pull_request:
+    paths:
+      - scripts/reference_sync.py
+      - tests/test_reference_sync.py
+      - REFERENCE_COMPILATION.md
+      - docs/reference-manifest.json
+      - docs/_source/**
+      - docs/_compiled/functions-reference.md
+      - docs/_compiled/functions-reference.meta.json
+      - .github/workflows/reference-sync.yml
+  push:
+    paths:
+      - scripts/reference_sync.py
+      - tests/test_reference_sync.py
+      - REFERENCE_COMPILATION.md
+      - docs/reference-manifest.json
+      - docs/_source/**
+      - docs/_compiled/functions-reference.md
+      - docs/_compiled/functions-reference.meta.json
+      - .github/workflows/reference-sync.yml
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest tests.test_reference_sync -v
+      - name: Verify initialized compiled-reference metadata
+        run: |
+          if [ -f docs/reference-manifest.json ] && [ -f docs/_compiled/functions-reference.meta.json ]; then
+            python scripts/reference_sync.py verify
+          else
+            echo "Exact-source workflow is not initialized yet; skipping freshness verification."
+          fi

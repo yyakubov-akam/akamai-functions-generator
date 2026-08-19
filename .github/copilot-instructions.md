@@ -9,6 +9,25 @@ python scripts/sync_agent_instructions.py
 
 Before writing any code, read `docs/_compiled/functions-reference.md`.
 
+## Reference Maintenance
+
+When asked to check or update the Akamai Functions reference, use the
+dependency-free workflow in `scripts/reference_sync.py`:
+
+1. Run `python3 scripts/reference_sync.py check`.
+2. If changes are reported, run `python3 scripts/reference_sync.py sync`.
+3. Run `python3 scripts/reference_sync.py verify`, even when no upstream
+   changes were reported.
+4. If verification reports missing metadata or a stale reference, recompile the
+   complete reference from every active exact source by following
+   `REFERENCE_COMPILATION.md`, then run
+   `python3 scripts/reference_sync.py finalize`.
+5. Run `python3 scripts/reference_sync.py verify` again and require it to pass.
+
+The legacy `ingest_v2.py` Ollama workflow remains available during migration.
+Do not modify or remove its summaries when using the new synchronization
+workflow.
+
 ## Think Before Coding
 
 Don't assume. Don't hide confusion. Surface tradeoffs.

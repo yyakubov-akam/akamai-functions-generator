@@ -51,3 +51,14 @@ docs/index.json
 scripts/
 tests/
 benchmarks/
+
+# The dependency-free reference synchronization workflow is part of the
+# distributable project. Other local/legacy supporting files remain ignored.
+!scripts/
+scripts/*
+!scripts/reference_sync.py
+!scripts/sync_agent_instructions.py
+!tests/
+tests/*
+!tests/test_agent_instructions.py
+!tests/test_reference_sync.py
