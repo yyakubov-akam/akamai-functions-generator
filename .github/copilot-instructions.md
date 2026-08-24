@@ -19,12 +19,14 @@ When asked to check or update the Akamai Functions reference, use the
 dependency-free workflow in `scripts/reference_sync.py`:
 
 1. Run `python3 scripts/reference_sync.py check`.
-2. If changes are reported, run `python3 scripts/reference_sync.py sync`.
+2. If `check` reports any updates, including validator refreshes where the
+   content is unchanged, run `python3 scripts/reference_sync.py sync`.
 3. Run `python3 scripts/reference_sync.py verify`, even when no upstream
    changes were reported.
-4. If verification reports missing metadata or a stale reference, recompile the
+4. Only if `verify` reports missing metadata or a stale reference, recompile the
    complete reference from every active exact source by following
-   `REFERENCE_COMPILATION.md`, then run
+   `REFERENCE_COMPILATION.md`. A validator-only refresh does not require
+   recompilation. After recompiling, run
    `python3 scripts/reference_sync.py finalize`.
 5. Run `python3 scripts/reference_sync.py verify` again and require it to pass.
 
