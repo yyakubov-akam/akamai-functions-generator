@@ -136,74 +136,50 @@ pull requests.
 
 ## Keeping the reference up to date
 
-`scripts/reference_sync.py` discovers pages from Akamai's `llms.txt`, downloads
-the exact upstream Markdown, and stores a deterministic manifest. It uses only
-Python's standard library and does not require model downloads, browser
-automation, or API credentials.
-
-`docs/_compiled/functions-reference.md` is a curated generated artifact that is
-included in the repository so every clone starts with a usable reference. The
-repository maintainer may prepare it with the public workflow or another local
-single-pass or multi-pass compilation process. The compiler is intentionally
-not prescribed.
-
-For publication and portable updates, the authoritative freshness inputs are
-the active exact sources in `docs/reference-manifest.json` and the contract in
-`REFERENCE_COMPILATION.md`. A locally produced candidate is publishable after
-it is audited against those exact sources, satisfies the contract, and passes
-`finalize` and `verify`.
-
-Ask your coding agent:
+Ask your coding agent to check for documentation updates before generating a
+function or whenever you want to refresh the repository's bundled reference:
 
 ```text
 Check the Akamai Functions documentation for updates and regenerate the reference if needed.
 ```
 
-The shared instructions in `AGENTS.md` tell supported agents to perform this
-workflow:
+This keeps `docs/_compiled/functions-reference.md` aligned with the latest
+published Akamai Functions documentation, so future functions can be generated
+from current guidance without you having to find, download, or compare the
+source pages yourself. Every clone includes a usable reference to start from;
+your agent reports upstream changes, refreshes it when needed, and verifies the
+local result.
 
-```bash
-# Network read only; does not modify the working tree.
-python3 scripts/reference_sync.py check
+### What happens under the hood
 
-# Store exact changed sources under docs/_source/ and update the manifest.
-python3 scripts/reference_sync.py sync
+The shared instructions in `AGENTS.md` direct supported coding agents through
+four stages handled by `scripts/reference_sync.py`:
 
-# Always check local freshness, even when the upstream check found no changes.
-python3 scripts/reference_sync.py verify
+- `check` reads Akamai's published documentation index and compares every
+  current page with the repository's saved source material. It reports new,
+  changed, restored, and removed pages without changing local files.
+- `sync` saves exact Markdown copies of changed pages under `docs/_source/` and
+  updates `docs/reference-manifest.json`. This manifest is the inventory of
+  documentation pages: it records which pages are active, where each copy is
+  stored, and its content fingerprint.
+- After the agent rebuilds the compiled reference when needed, `finalize`
+  validates its structure, source coverage, and attribution links, then records
+  matching fingerprints for the source inventory, compilation rules, and
+  finished reference.
+- `verify` repeats those checks without a network connection. It detects
+  missing or edited source copies, incomplete coverage, and any compiled
+  reference or compilation-rule change made after `finalize`.
 
-# If verification reports missing/stale metadata, recompile according to the
-# public process in REFERENCE_COMPILATION.md, then record and verify the result:
-python3 scripts/reference_sync.py finalize
-python3 scripts/reference_sync.py verify
-```
+Freshness therefore has two parts: `check` establishes whether Akamai has
+published anything new, while `verify` confirms that the bundled reference was
+built from the saved current sources and has not since drifted from them. The
+agent runs `verify` after every upstream check, even when `check` reports no
+changes.
 
-The first synchronization creates `docs/reference-manifest.json` and treats all
-currently published pages as additions. Later runs report additions, content
-changes, reactivations, and pages removed from `llms.txt`. Removed source
-snapshots are retained and marked inactive rather than deleted.
-
-`verify` is entirely offline. It checks exact-source hashes, required section
-order, source coverage, local attribution links, and confirms that the active
-source set, publication contract, and compiled reference match the hashes
-recorded by `finalize`. The metadata is a freshness record, not compiler
-provenance: the finalized reference may have been created by any compilation
-workflow. Agents run `verify` after every upstream check, so a manual
-synchronization, changed contract, or edited compiled reference cannot be
-mistaken for a current reference.
-
-For CI-style detection, `check --fail-on-changes` exits with status `3` when a
-sync would change the repository. Ordinary `check` always reports changes
-without treating them as an execution failure.
-
-The public repository boundary is checked with:
-
-```bash
-python3 scripts/check_public_boundary.py
-```
-
-This command and its always-running pull-request workflow prevent private local
-maintenance files from being accidentally committed.
+The script uses only Python's standard library and does not require model
+downloads, browser automation, or API credentials. Removed documentation pages
+are kept in the source archive for history but marked inactive so they are no
+longer included in future reference builds.
 
 ---
 
@@ -217,7 +193,6 @@ maintenance files from being accidentally committed.
 │   ├── copilot-instructions.md     # Generated Copilot compatibility copy
 │   └── workflows/
 │       ├── agent-instructions.yml  # Prevents instruction drift
-│       ├── public-boundary.yml     # Rejects private local files
 │       └── reference-sync.yml      # Verifies generated reference freshness
 ├── AGENTS.md                       # Canonical instructions for every agent
 ├── CLAUDE.md                       # Claude Code imports AGENTS.md
@@ -229,7 +204,6 @@ maintenance files from being accidentally committed.
 │   │   └── functions-reference.meta.json # Freshness hashes
 │   └── reference-manifest.json     # Exact-source inventory and hashes
 ├── scripts/
-│   ├── check_public_boundary.py    # Prevents private-file publication
 │   ├── reference_sync.py           # Dependency-free exact-source workflow
 │   └── sync_agent_instructions.py  # Regenerates Copilot instructions
 ├── tests/                           # Public workflow and instruction tests
