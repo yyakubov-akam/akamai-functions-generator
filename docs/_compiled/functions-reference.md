@@ -24,7 +24,7 @@ Every item in this section is a hard platform, runtime, deployment, or tooling c
 
 ### 1.2 Execution and storage quotas
 
-**Sources:** [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md)
+**Sources:** [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md](../_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md)
 
 - **NEVER exceed 128 MiB of memory per function execution.** The source defines 128 MiB as the hard memory limit; it does not state the exact termination/error text.
 - **NEVER exceed 50 MiB of total application size.** The application exceeds the platform size limit; the source does not state the exact deployment error.
@@ -36,20 +36,23 @@ Every item in this section is a hard platform, runtime, deployment, or tooling c
 - **NEVER store a KV value larger than 1 MB.** The value exceeds the KV value-size limit; the source does not state the exact write error.
 - **NEVER use a KV key larger than 8 KB.** The key exceeds the KV key-size limit; the source does not state the exact write error.
 
+The dedicated quotas page defines 30 seconds as the request-handler limit. The comparison page separately describes Akamai Functions execution time as “30 seconds default, extendable.” These statements conflict. Use 30 seconds as the canonical generated limit and do not assume an extension is available unless Akamai explicitly grants one.
+
 KV query-rate limits are described as experimentation-level limits and can be increased by customer request.
 
 ### 1.3 Key-value store
 
-**Sources:** [docs/_source/techdocs-akamai-com/use-the-key-value-store.md](../_source/techdocs-akamai-com/use-the-key-value-store.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md)
+**Sources:** [docs/_source/techdocs-akamai-com/use-the-key-value-store.md](../_source/techdocs-akamai-com/use-the-key-value-store.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/use-cases.md](../_source/techdocs-akamai-com/use-cases.md)
 
 - **NEVER use `wasi:keyvalue/atomic`.** The interface is not supported; a component importing it cannot use that capability.
 - **NEVER configure a deployed `key_value_stores` label other than exactly `"default"`.** The Akamai Functions manifest accepts only `"default"`; any other label fails deployment/use.
 - **NEVER attempt to share a KV store between applications.** Stores are scoped to a single application, so another application cannot access the same store.
 - **NEVER use EdgeKV as if it were the Akamai Functions KV store.** EdgeKV is not compatible with Akamai Functions, so those APIs cannot access this store.
+- **NEVER treat an EdgeKV Admin API integration as direct compatibility with the Akamai Functions KV store.** The use-cases page says a Function can push data into EdgeKV Admin APIs, while the KV guide says EdgeKV and Functions KV are separate and incompatible. Preserve that service/API boundary.
 
 ### 1.4 Outbound networking and databases
 
-**Sources:** [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/query-relational-databases-mysql.md](../_source/techdocs-akamai-com/query-relational-databases-mysql.md), [docs/_source/techdocs-akamai-com/query-relational-databases-postgresql.md](../_source/techdocs-akamai-com/query-relational-databases-postgresql.md)
+**Sources:** [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/query-relational-databases-mysql.md](../_source/techdocs-akamai-com/query-relational-databases-mysql.md), [docs/_source/techdocs-akamai-com/query-relational-databases-postgresql.md](../_source/techdocs-akamai-com/query-relational-databases-postgresql.md), [docs/_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md](../_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md)
 
 - **NEVER call an outbound host that is absent from `allowed_outbound_hosts` in `spin.toml`.** The capabilities-based security model denies the outbound request.
 - **NEVER use `localhost` or a short service name for inter-application communication.** These names do not resolve like Docker Compose or Kubernetes services; use the full public URL such as `https://<app-id>.fwf.app`.
@@ -57,6 +60,8 @@ KV query-rate limits are described as experimentation-level limits and can be in
 - **NEVER configure PostgreSQL outbound connectivity without `postgres://` and port `5432`.** The PostgreSQL request lacks the required outbound capability.
 - **NEVER omit the component's variable mapping for a database connection string.** The documented MySQL and PostgreSQL integrations read mapped values through `Variables.get(...)`; an unmapped variable is unavailable to the component.
 - **NEVER omit the Spin database SDK capability used by the documented integration.** The exact examples use `@spinframework/spin-postgres` with `Postgres.open(connectionString)` and `@spinframework/spin-mysql` with `Mysql.open(connectionString)`.
+- **NEVER read “outbound HTTP to any hostname” as implicit network permission.** The comparison means Functions is not restricted to Akamized hostnames as EdgeWorkers is; the Functions capability model still requires every target in `allowed_outbound_hosts`.
+- **NEVER assume Akamai manages every supported database.** The comparison documents MySQL, PostgreSQL, and Redis as customer-managed data stores. It says Linode DBaaS MySQL is compatible, PostgreSQL is not yet compatible with Linode DBaaS, and Akamai does not currently offer managed Redis.
 
 ### 1.5 Application variables and deployment versions
 
@@ -901,17 +906,19 @@ http.Request
 
 ### 4.12 Other platform interfaces
 
-**Sources:** [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/welcome.md](../_source/techdocs-akamai-com/welcome.md)
+**Sources:** [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/welcome.md](../_source/techdocs-akamai-com/welcome.md), [docs/_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md](../_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md), [docs/_source/techdocs-akamai-com/use-cases.md](../_source/techdocs-akamai-com/use-cases.md)
 
 - `HTTP` — supported incoming trigger.
-- `Outbound HTTP` — supported with capability allowlisting in `spin.toml`.
+- `Outbound HTTP` — supported to non-Akamized and third-party hostnames with capability allowlisting in `spin.toml`; “any hostname” in the comparison page does not remove the allowlist requirement.
 - `Application Variables` — supported configuration API.
 - `Key Value Storage` / `wasi-keyvalue` — supported through `wasi:keyvalue/store` and `wasi:keyvalue/batch` at the 2024-10-17 snapshot.
 - `MySQL` and `PostgreSQL` — supported outbound database APIs.
-- `Outbound Redis` — supported; distinct from the unsupported Redis trigger.
+- `Outbound Redis` — supported for customer-managed Redis; distinct from the unsupported Redis trigger. The comparison page says Akamai does not currently provide managed Redis.
 - `wasi-config` — supported at the 2024-09-27 snapshot.
 - `Component dependencies` — supported.
 - Serverless AI — Limited Access only.
+- External AI inference orchestration — the use-cases page describes AI agents that integrate with inference calls and explicitly says inference itself runs outside Functions. Do not turn that example into a claim of generally available in-runtime inference.
+- EdgeKV Admin API interaction — the use-cases page says Functions can push data into EdgeKV Admin APIs. This is a cross-service integration, not access to the separate Functions KV store.
 
 Service-chaining pattern:
 
@@ -1167,6 +1174,31 @@ Deployment through `spin aka deploy` requires authentication through the documen
 - The managed KV store is isolated to one application, and each component needs explicit manifest permission. It is globally replicated with a replica in the same geographic area as each compute region, and standard operations provide read-your-writes behavior within one request.
 - Akamai Functions captures everything an application writes to `stdout` and `stderr`. `spin aka logs` targets the linked application by default; the command reference additionally documents filters for component, deployment version, region, and time.
 
+### 4.19 Akamai Functions, EdgeWorkers, and workload placement
+
+**Sources:** [docs/_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md](../_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md), [docs/_source/techdocs-akamai-com/use-cases.md](../_source/techdocs-akamai-com/use-cases.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/use-the-key-value-store.md](../_source/techdocs-akamai-com/use-the-key-value-store.md)
+
+The two Akamai compute products are documented as complementary execution layers:
+
+| Area | EdgeWorkers | Akamai Functions |
+|---|---|---|
+| Runtime | JavaScript on V8 | WebAssembly through Spin/Wasmtime |
+| Execution layer | CDN HTTP pipeline at edge locations | Akamai Cloud compute regions with automatic location-based routing |
+| Trigger model | HTTP lifecycle events: `onClientRequest`, `onOriginRequest`, `onOriginResponse`, `onClientResponse`, and `responseProvider` | HTTP requests; cron schedules invoke an HTTP path rather than adding a language-level trigger |
+| Execution time | Less than 10 seconds, varying by event and tier | Source conflict: 30-second quota versus “30 seconds default, extendable” in the comparison page |
+| Primary placement | Routing, authentication, cache-key construction, header enforcement, request/response transformation | Business rules, APIs, microservices, orchestration, data transformation, server-side rendering, and heavier application logic |
+| Data access | EdgeKV and outbound HTTP to Akamized hostnames | Functions KV, allowlisted outbound HTTP, and customer-managed MySQL, PostgreSQL, and Redis |
+
+Use-case and operational guidance:
+
+- Choose Functions for application-level compute such as API backends, microservices, data enrichment, server-side rendering, media processing, and stateful application APIs. These examples remain subject to the 30-second handler, memory, and payload limits in §1.2.
+- Choose EdgeWorkers for CDN-pipeline work such as advanced request routing, A/B assignment, token validation, cache-key customization, security-header enforcement, and geography-based request adaptation.
+- EdgeWorkers `responseProvider` can act as an origin and has somewhat higher limits than other EdgeWorkers events, but the comparison still describes it as lightweight compute constrained by the capacity of small CDN regions.
+- The use-cases page describes AI-agent logic that integrates with inference calls, but says inference itself runs outside Functions. The comparison page more broadly lists AI inference as a Functions workload, while the quotas page marks Serverless AI as Limited Access. Generated applications must preserve this difference and must not assume general in-runtime inference access.
+- MySQL with Linode DBaaS is described as the smoothest managed Akamai-native database path, although a multi-region MySQL cluster requires extra effort. PostgreSQL protocol support is available but is not yet compatible with Linode DBaaS; Redis protocol support requires a customer-managed or third-party Redis service.
+- The comparison calls Functions execution time “30 seconds default, extendable,” but the dedicated quotas page defines a 30-second request-handler limit. Use the dedicated quota as canonical unless an explicit customer-specific increase is confirmed.
+- Combined designs can use EdgeWorkers as the traffic controller and Functions as the application server. The use-cases page says EdgeWorkers can make requests to Functions and Functions can push data into EdgeKV Admin APIs. The latter does not make EdgeKV interchangeable with Functions KV.
+
 ---
 
 ## 5. Cross-Reference
@@ -1259,6 +1291,19 @@ cron schedule    -> deployed HTTP path -> one of the handlers above
 | `spin aka app delete` | Selected/current account and app | Permanent; any team member can perform it because RBAC is absent |
 | `spin aka cron create/list/delete` | Current/deployed app | Operates on HTTP paths; Tech Preview/UNSTABLE |
 
+### 5.5 Cross-platform and data-service interactions
+
+**Sources:** [docs/_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md](../_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md), [docs/_source/techdocs-akamai-com/use-cases.md](../_source/techdocs-akamai-com/use-cases.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/use-the-key-value-store.md](../_source/techdocs-akamai-com/use-the-key-value-store.md)
+
+| Interaction | Documented purpose | Capability or boundary |
+|---|---|---|
+| EdgeWorkers → Akamai Functions | Route selected requests from the CDN pipeline to application/business logic | The new sources state this interaction but do not define an EdgeWorkers configuration signature |
+| Akamai Functions → third-party HTTP/API | API orchestration, external services, and inference calls | Target must be present in the Function component's `allowed_outbound_hosts`; inference itself is outside Functions in the AI-agent use case |
+| Akamai Functions → MySQL/PostgreSQL | Customer-managed relational persistence and queries | Use the documented `mysql://` or `postgres://` outbound capability; MySQL has a Linode DBaaS path, while PostgreSQL requires other infrastructure as described in §4.19 |
+| Akamai Functions → Redis | Customer-managed caching, sessions, pub/sub, and related in-memory data patterns | Outbound Redis is listed as supported, but the active sources do not provide an exact SDK binding or manifest signature; Akamai does not currently offer managed Redis |
+| Akamai Functions → EdgeKV Admin APIs | Publish control-plane data for EdgeWorkers, such as revocation or health information | The use-cases page states the integration but does not give an exact binding or command; EdgeKV remains separate from Functions KV |
+| Cron service → Akamai Functions HTTP route | Periodic polling, maintenance, or aggregation | Cron is Tech Preview, schedules use UTC, and the schedule/path pair must be unique |
+
 ### Source Coverage
 
 This table accounts for every active entry in `docs/reference-manifest.json`. `Included` rows name substantive subsections that incorporate the source's unique reference facts. `Excluded` is reserved for a source that contains no source-specific Akamai Functions API, constraint, operational fact, or working code pattern.
@@ -1266,6 +1311,7 @@ This table accounts for every active entry in `docs/reference-manifest.json`. `I
 | Active exact source | Status | Compiled coverage or exclusion reason |
 |---|---|---|
 | [aka-command-reference.md](../_source/techdocs-akamai-com/aka-command-reference.md) | Included | §1.7 Cron jobs; §1.9 CLI constraints; §4.13 CLI command reference; §4.14 Cron CLI |
+| [akamai-functions-and-edgeworkers-comparison.md](../_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md) | Included | §1.2 execution-limit conflict; §1.4 outbound networking and databases; §4.12 platform interfaces; §4.19 workload placement; §5.5 cross-platform interactions |
 | [application-logs.md](../_source/techdocs-akamai-com/application-logs.md) | Included | §4.10 Logging; §4.18 Platform and operational reference; §5.4 CLI context and lifecycle interactions |
 | [build-a-supabase-cache-proxy.md](../_source/techdocs-akamai-com/build-a-supabase-cache-proxy.md) | Included | §2.7 Supabase; §4.4 Key-value store; §4.7 Supabase client; §6.11 and §6.14 failure patterns |
 | [delete-an-application.md](../_source/techdocs-akamai-com/delete-an-application.md) | Included | §1.6 Updates, deletion, and account security; §4.13 CLI command reference; §4.18 Platform and operational reference |
@@ -1285,6 +1331,7 @@ This table accounts for every active entry in `docs/reference-manifest.json`. `I
 | [schedule-tasks-with-cron-jobs-in-spin.md](../_source/techdocs-akamai-com/schedule-tasks-with-cron-jobs-in-spin.md) | Included | §1.7 Cron jobs; §3.4 Cron invocation; §4.14 Cron CLI; §6.15, §6.16, and §6.22 failure patterns |
 | [stream-data-from-linode-object-store.md](../_source/techdocs-akamai-com/stream-data-from-linode-object-store.md) | Included | §2.8 S3-compatible object storage and streams; §4.8 S3-compatible object storage; §6.12 and §6.13 failure patterns |
 | [update-an-application.md](../_source/techdocs-akamai-com/update-an-application.md) | Included | §1.5 and §1.6 deployment constraints; §4.15 Deployment, updates, and CI; §4.18 operational reference; §6.17 and §6.18 failure patterns |
+| [use-cases.md](../_source/techdocs-akamai-com/use-cases.md) | Included | §1.3 KV service boundary; §4.12 platform interfaces; §4.19 workload placement; §5.5 cross-platform interactions |
 | [use-the-key-value-store.md](../_source/techdocs-akamai-com/use-the-key-value-store.md) | Included | §1.3 Key-value store; §4.4 Key-value store; §4.18 operational reference; §6.9 and §6.10 failure patterns |
 | [webassembly-language-support-matrix.md](../_source/techdocs-akamai-com/webassembly-language-support-matrix.md) | Included | §1.1 Platform and runtime; §1.8 Language and toolchain constraints; §4.17 compatibility ledger |
 | [welcome.md](../_source/techdocs-akamai-com/welcome.md) | Included | §1.1 Platform and runtime; §4.12 Other platform interfaces; §4.18 Platform and operational reference |
@@ -1447,10 +1494,10 @@ key_value_stores = [ "default" ]
 
 ### 6.10 Atomic KV or EdgeKV used for the managed store
 
-**Sources:** [docs/_source/techdocs-akamai-com/use-the-key-value-store.md](../_source/techdocs-akamai-com/use-the-key-value-store.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md)
+**Sources:** [docs/_source/techdocs-akamai-com/use-the-key-value-store.md](../_source/techdocs-akamai-com/use-the-key-value-store.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/use-cases.md](../_source/techdocs-akamai-com/use-cases.md)
 
 ```javascript
-// WRONG — wasi:keyvalue/atomic and EdgeKV are unsupported here.
+// WRONG — wasi:keyvalue/atomic and direct EdgeKV-as-Functions-KV access are unsupported here.
 // atomic.increment("count", 1)
 
 // CORRECT
@@ -1459,7 +1506,7 @@ const store = openDefault();
 store.setJson("count", payload);
 ```
 
-**Symptom:** the unsupported interface or separate EdgeKV service cannot access the Akamai Functions managed KV store.
+**Symptom:** the unsupported interface or separate EdgeKV service cannot access the Akamai Functions managed KV store. A Function-to-EdgeKV Admin API integration described by the use-cases page is a separate cross-service path and does not change this store boundary.
 
 ### 6.11 Supabase `.single()` for an optional match
 

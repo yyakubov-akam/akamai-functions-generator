@@ -2,7 +2,7 @@
 updatedAt: 2026-06-22T12:45:15.000Z
 ---
 
-Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further.
+Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further. Append .md to any documentation page URL to get its markdown version.
 
 # Build a Supabase cache proxy
 

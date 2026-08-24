@@ -2,7 +2,7 @@
 updatedAt: 2026-07-23T22:20:42.000Z
 ---
 
-Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further.
+Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further. Append .md to any documentation page URL to get its markdown version.
 
 # Schedule tasks with cron jobs in Spin (Tech Preview)
 

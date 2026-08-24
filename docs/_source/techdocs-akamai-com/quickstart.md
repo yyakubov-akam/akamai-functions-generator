@@ -2,7 +2,7 @@
 updatedAt: 2026-07-21T20:45:33.000Z
 ---
 
-Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further.
+Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further. Append .md to any documentation page URL to get its markdown version.
 
 # Quickstart
 
@@ -524,5 +524,6 @@ Congratulations, you’ve now deployed your first Spin application to Akamai Fun
 # Sibling pages
 
 * [Welcome to Akamai Functions (Limited availability)](https://techdocs.akamai.com/akamai-functions/docs/welcome.md)
+* [Akamai Functions & EdgeWorkers comparison](https://techdocs.akamai.com/akamai-functions/docs/akamai-functions-and-edgeworkers-comparison.md)
 * [Manage  accounts](https://techdocs.akamai.com/akamai-functions/docs/manage-accounts.md)
 * [Tutorials](https://techdocs.akamai.com/akamai-functions/docs/tutorials.md)

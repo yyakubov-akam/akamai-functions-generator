@@ -1,9 +1,9 @@
 {
   "compiled_reference": "docs/_compiled/functions-reference.md",
-  "compiled_reference_sha256": "107ae893fdbb52e8ba179653608afe07dacb46c8fc7ad7ee1eb0c4b62d8b539d",
+  "compiled_reference_sha256": "dfc57d8c0a578e17db1dfb608bff3692d99168ff5ecda3b49920c57b9b00c316",
   "publication_contract": "REFERENCE_COMPILATION.md",
   "publication_contract_sha256": "64b7eadc226770bac0704f0cddbd55d655b280c7e69334ff44e2a11f4de105df",
   "schema_version": 2,
-  "source_count": 23,
-  "source_set_sha256": "54e4f68e7fb388c08c74620ef60f11f06a778776255b75d5c40c4344957c0122"
+  "source_count": 25,
+  "source_set_sha256": "aaf97b82a78fd0e302613b9a49ef83ddbac90c856bc34f4dd4eb1060ffba3022"
 }

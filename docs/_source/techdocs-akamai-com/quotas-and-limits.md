@@ -2,7 +2,7 @@
 updatedAt: 2026-07-23T21:47:23.000Z
 ---
 
-Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further.
+Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further. Append .md to any documentation page URL to get its markdown version.
 
 # Quotas and limits
 

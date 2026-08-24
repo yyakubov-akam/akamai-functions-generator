@@ -2,7 +2,7 @@
 updatedAt: 2026-04-20T13:57:25.000Z
 ---
 
-Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further.
+Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further. Append .md to any documentation page URL to get its markdown version.
 
 # Manage  accounts
 
@@ -96,4 +96,5 @@ To upgrade your application, follow the steps in [Update an application](https:/
 
 * [Welcome to Akamai Functions (Limited availability)](https://techdocs.akamai.com/akamai-functions/docs/welcome.md)
 * [Quickstart](https://techdocs.akamai.com/akamai-functions/docs/quickstart.md)
+* [Akamai Functions & EdgeWorkers comparison](https://techdocs.akamai.com/akamai-functions/docs/akamai-functions-and-edgeworkers-comparison.md)
 * [Tutorials](https://techdocs.akamai.com/akamai-functions/docs/tutorials.md)
