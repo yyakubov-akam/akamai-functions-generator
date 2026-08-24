@@ -44,6 +44,7 @@ USER_AGENT = "aka-functions-reference-sync/1.0"
 MARKDOWN_LINK = re.compile(r"\[[^\]]+\]\(([^)\s]+)\)")
 SAFE_PATH_PART = re.compile(r"[^a-z0-9]+")
 TRANSIENT_HTTP_STATUSES = {408, 429, 500, 502, 503, 504}
+HEAD_UNSUPPORTED_STATUSES = {405, 501}
 SOURCE_CONTENT_TYPES = {"text/markdown", "text/plain"}
 REQUIRED_REFERENCE_HEADINGS = (
     "## 1. Runtime Prohibitions",
@@ -77,6 +78,7 @@ class HttpResult:
 class ChangeReport:
     added: list[str] = field(default_factory=list)
     changed: list[str] = field(default_factory=list)
+    validator_refreshed: list[str] = field(default_factory=list)
     removed: list[str] = field(default_factory=list)
     reactivated: list[str] = field(default_factory=list)
     repaired: list[str] = field(default_factory=list)
@@ -88,6 +90,7 @@ class ChangeReport:
         return bool(
             self.added
             or self.changed
+            or self.validator_refreshed
             or self.removed
             or self.reactivated
             or self.repaired
@@ -100,6 +103,7 @@ class ChangeReport:
             "index_changed": self.index_changed,
             "added": self.added,
             "changed": self.changed,
+            "validator_refreshed": self.validator_refreshed,
             "removed": self.removed,
             "reactivated": self.reactivated,
             "repaired": self.repaired,
@@ -107,6 +111,7 @@ class ChangeReport:
             "counts": {
                 "added": len(self.added),
                 "changed": len(self.changed),
+                "validator_refreshed": len(self.validator_refreshed),
                 "removed": len(self.removed),
                 "reactivated": len(self.reactivated),
                 "repaired": len(self.repaired),
@@ -115,7 +120,7 @@ class ChangeReport:
         }
 
 
-OpenUrl = Callable[[str, Mapping[str, str], int], HttpResult]
+OpenUrl = Callable[[str, Mapping[str, str], int, str], HttpResult]
 
 
 def create_tls_context() -> ssl.SSLContext:
@@ -162,25 +167,27 @@ def open_url(
     url: str,
     headers: Mapping[str, str],
     timeout: int = REQUEST_TIMEOUT_SECONDS,
+    method: str = "GET",
 ) -> HttpResult:
-    """Fetch a URL with bounded retries and return response bytes."""
+    """Request a URL with bounded retries and return response metadata/body."""
     request_headers = {"User-Agent": USER_AGENT, **headers}
+    method = method.upper()
     last_error: Exception | None = None
 
     for attempt in range(MAX_RETRIES):
-        request = Request(url, headers=request_headers)
+        request = Request(url, headers=request_headers, method=method)
         try:
             with urlopen(request, timeout=timeout, context=TLS_CONTEXT) as response:
                 return HttpResult(
                     status=response.getcode(),
-                    body=response.read(),
+                    body=b"" if method == "HEAD" else response.read(),
                     headers=_headers_to_dict(response.headers),
                     final_url=response.geturl(),
                 )
         except HTTPError as exc:
-            if exc.code == 304:
+            if method == "HEAD" and exc.code in HEAD_UNSUPPORTED_STATUSES:
                 return HttpResult(
-                    status=304,
+                    status=exc.code,
                     body=b"",
                     headers=_headers_to_dict(exc.headers or {}),
                     final_url=exc.geturl(),
@@ -256,6 +263,7 @@ def discover_sources(
         llms_url,
         {"Accept": "text/plain, text/markdown;q=0.9"},
         timeout,
+        "GET",
     )
     if response.status != 200:
         raise ReferenceSyncError(
@@ -354,33 +362,57 @@ def _local_source_matches(
     return sha256_file(path) == entry["content_sha256"], path
 
 
-def _fetch_markdown(
+def _get_markdown(
     source_url: str,
-    old_entry: dict | None,
     opener: OpenUrl,
     timeout: int,
-    conditional: bool = True,
 ) -> HttpResult:
     headers = {"Accept": "text/markdown, text/plain;q=0.9"}
-    if conditional and old_entry:
-        if old_entry.get("etag"):
-            headers["If-None-Match"] = old_entry["etag"]
-        if old_entry.get("last_modified"):
-            headers["If-Modified-Since"] = old_entry["last_modified"]
-
-    response = opener(source_url, headers, timeout)
-    if response.status not in {200, 304}:
+    response = opener(source_url, headers, timeout, "GET")
+    if response.status != 200:
         raise ReferenceSyncError(
             f"Source returned HTTP {response.status}: {source_url}"
         )
-    if response.status == 200:
-        content_type = _content_type(response.headers)
-        if content_type not in SOURCE_CONTENT_TYPES:
-            raise ReferenceSyncError(
-                f"Expected Markdown from {source_url}, got "
-                f"{content_type or 'a missing content type'}"
-            )
+    content_type = _content_type(response.headers)
+    if content_type not in SOURCE_CONTENT_TYPES:
+        raise ReferenceSyncError(
+            f"Expected Markdown from {source_url}, got "
+            f"{content_type or 'a missing content type'}"
+        )
     return response
+
+
+def _head_markdown(
+    source_url: str,
+    opener: OpenUrl,
+    timeout: int,
+) -> HttpResult | None:
+    headers = {"Accept": "text/markdown, text/plain;q=0.9"}
+    response = opener(source_url, headers, timeout, "HEAD")
+    if response.status in HEAD_UNSUPPORTED_STATUSES:
+        return None
+    if response.status != 200:
+        raise ReferenceSyncError(
+            f"Source HEAD returned HTTP {response.status}: {source_url}"
+        )
+    content_type = _content_type(response.headers)
+    if content_type and content_type not in SOURCE_CONTENT_TYPES:
+        return None
+    return response
+
+
+def _validators_match(old_entry: dict, headers: Mapping[str, str]) -> bool | None:
+    current_etag = headers.get("etag")
+    stored_etag = old_entry.get("etag")
+    if current_etag is not None and stored_etag is not None:
+        return current_etag == stored_etag
+
+    current_last_modified = headers.get("last-modified")
+    stored_last_modified = old_entry.get("last_modified")
+    if current_last_modified is not None and stored_last_modified is not None:
+        return current_last_modified == stored_last_modified
+
+    return None
 
 
 def inspect_upstream(
@@ -424,26 +456,31 @@ def inspect_upstream(
             )
         assigned_paths[relative_path] = canonical_url
 
-        local_matches, local_path = _local_source_matches(old_entry, project_root)
-        response = _fetch_markdown(
-            source_url, old_entry, opener, timeout, conditional=True
+        local_matches, _ = _local_source_matches(old_entry, project_root)
+        source_metadata_matches = bool(
+            old_entry
+            and old_entry["source_url"] == source_url
+            and old_entry["filepath"] == relative_path
         )
-        if response.status == 304 and not local_matches:
-            response = _fetch_markdown(
-                source_url, old_entry, opener, timeout, conditional=False
+        if old_entry and local_matches and source_metadata_matches:
+            head_response = _head_markdown(source_url, opener, timeout)
+            validators_match = (
+                _validators_match(old_entry, head_response.headers)
+                if head_response is not None
+                else None
             )
-        if response.status == 304:
-            if old_entry and not old_entry.get("active", True):
-                proposed["sources"][canonical_url] = {
-                    **old_entry,
-                    "source_url": source_url,
-                    "active": True,
-                }
-                report.reactivated.append(canonical_url)
-            else:
-                report.unchanged.append(canonical_url)
-            continue
+            if validators_match:
+                if not old_entry.get("active", True):
+                    proposed["sources"][canonical_url] = {
+                        **old_entry,
+                        "active": True,
+                    }
+                    report.reactivated.append(canonical_url)
+                else:
+                    report.unchanged.append(canonical_url)
+                continue
 
+        response = _get_markdown(source_url, opener, timeout)
         digest = sha256_bytes(response.body)
         new_entry = {
             "source_url": source_url,
@@ -461,18 +498,28 @@ def inspect_upstream(
             report.reactivated.append(canonical_url)
         elif (
             old_entry["content_sha256"] != digest
-            or old_entry["source_url"] != source_url
-            or old_entry["filepath"] != relative_path
+            or not source_metadata_matches
         ):
             report.changed.append(canonical_url)
         elif not local_matches:
             report.repaired.append(canonical_url)
+        elif (
+            old_entry.get("etag") != new_entry["etag"]
+            or old_entry.get("last_modified") != new_entry["last_modified"]
+        ):
+            report.validator_refreshed.append(canonical_url)
         else:
             report.unchanged.append(canonical_url)
             continue
 
         proposed["sources"][canonical_url] = new_entry
-        downloads[target_path] = response.body
+        if (
+            old_entry is None
+            or not local_matches
+            or old_entry["filepath"] != relative_path
+            or old_entry["content_sha256"] != digest
+        ):
+            downloads[target_path] = response.body
 
     for canonical_url, old_entry in manifest["sources"].items():
         if canonical_url in discovered_urls or not old_entry.get("active", True):
@@ -483,6 +530,7 @@ def inspect_upstream(
     for values in (
         report.added,
         report.changed,
+        report.validator_refreshed,
         report.removed,
         report.reactivated,
         report.repaired,
@@ -810,6 +858,7 @@ def print_report(report: ChangeReport, as_json: bool) -> None:
     labels = (
         ("Added", report.added),
         ("Changed", report.changed),
+        ("Validator refreshed (content unchanged)", report.validator_refreshed),
         ("Removed from index (snapshot retained)", report.removed),
         ("Reactivated", report.reactivated),
         ("Repaired local snapshot", report.repaired),

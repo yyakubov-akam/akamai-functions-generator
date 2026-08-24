@@ -156,12 +156,15 @@ The shared instructions in `AGENTS.md` direct supported coding agents through
 four stages handled by `scripts/reference_sync.py`:
 
 - `check` reads Akamai's published documentation index and compares every
-  current page with the repository's saved source material. It reports new,
-  changed, restored, and removed pages without changing local files.
+  current page with the repository's saved source material. For known pages,
+  it first compares the ETag returned by a lightweight HEAD request. It
+  downloads and hashes the Markdown only when that validator changed or cannot
+  be used, then reports new, changed, restored, and removed pages without
+  changing local files.
 - `sync` saves exact Markdown copies of changed pages under `docs/_source/` and
   updates `docs/reference-manifest.json`. This manifest is the inventory of
   documentation pages: it records which pages are active, where each copy is
-  stored, and its content fingerprint.
+  stored, its content fingerprint, and the validator used by later checks.
 - After the agent rebuilds the compiled reference when needed, `finalize`
   validates its structure, source coverage, and attribution links, then records
   matching fingerprints for the source inventory, compilation rules, and
@@ -170,11 +173,11 @@ four stages handled by `scripts/reference_sync.py`:
   missing or edited source copies, incomplete coverage, and any compiled
   reference or compilation-rule change made after `finalize`.
 
-Freshness therefore has two parts: `check` establishes whether Akamai has
-published anything new, while `verify` confirms that the bundled reference was
-built from the saved current sources and has not since drifted from them. The
-agent runs `verify` after every upstream check, even when `check` reports no
-changes.
+Freshness therefore has two parts: `check` uses upstream validators and content
+fingerprints to establish whether Akamai has published anything new, while
+`verify` confirms that the bundled reference was built from the saved current
+sources and has not since drifted from them. The agent runs `verify` after every
+upstream check, even when `check` reports no changes.
 
 The script uses only Python's standard library and does not require model
 downloads, browser automation, or API credentials. Removed documentation pages
