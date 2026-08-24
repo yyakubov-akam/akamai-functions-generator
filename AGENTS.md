@@ -9,6 +9,25 @@ python scripts/sync_agent_instructions.py
 
 Before writing any code, read `docs/_compiled/functions-reference.md`.
 
+## Answer Akamai Functions Questions from the Reference
+
+Before answering any Akamai Functions-specific question, search
+`docs/_compiled/functions-reference.md` and ground the answer in that reference.
+
+Use this source order:
+
+1. The compiled reference.
+2. The exact source documents under `docs/_source/` when more context is needed.
+3. Current official Akamai documentation when the user requests current
+   information or the local reference does not contain the answer.
+4. General Spin, WASI, or model knowledge only as supplementary context.
+
+Clearly identify information that comes from general knowledge or inference.
+Never present it as documented Akamai Functions behavior. If an answer cannot
+be established from authoritative sources, say so instead of guessing.
+
+When practical, cite the relevant reference section or source document.
+
 ## Reference Maintenance
 
 The checked-in reference is a curated generated artifact and may have been

@@ -1,20 +1,26 @@
 # Akamai Functions Generator
 
-An AI-assisted workspace for generating [Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/quickstart) (Spin-based WebAssembly edge functions) from natural language descriptions.
+Give your coding agent the knowledge to build
+[Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/quickstart)
+correctly and answer questions accurately.
 
 Works out of the box with **Claude Code**, **GitHub Copilot**, **Codex**, and
 **Google Antigravity IDE**. All four agents receive the same project rules from
 `AGENTS.md` and are instructed to read the compiled Akamai Functions API
-reference before writing code.
+reference before writing code and search it before answering Akamai
+Functions-specific questions.
 
 ---
 
 ## How it works
 
 1. **A curated Akamai Functions API reference** is included at `docs/_compiled/functions-reference.md`.
-2. **The AI agent reads that reference** before writing any code, using the
-   shared instructions in `AGENTS.md` and small agent-specific adapters.
-3. **You describe what you want** and the agent generates a complete, deployable Akamai Function under `functions/<function-name>/`.
+2. **The AI agent uses that reference first** before writing code or answering
+   Akamai Functions-specific questions, following the shared instructions in
+   `AGENTS.md` and small agent-specific adapters.
+3. **You describe a function or ask a question.** The agent either generates a
+   complete, deployable Akamai Function under `functions/<function-name>/` or
+   provides a reference-grounded answer.
 
 ---
 
@@ -68,6 +74,29 @@ After generating the function, the agent will also:
 
 The agent will **not** run `spin aka deploy` unless you explicitly ask it to
 deploy. You can always perform deployment manually instead.
+
+---
+
+## Asking Akamai Functions questions
+
+You can use the workspace as an Akamai Functions knowledge assistant without
+requesting any code. For example:
+
+```text
+What are the main Akamai Functions runtime and storage limitations?
+```
+
+For Akamai Functions-specific questions, the agent searches the compiled
+reference first. If more context is needed, it follows the source links into
+`docs/_source/`. If the Akamai documentation does not answer the question, the
+agent consults Spin or WASI documentation, or draws on its general knowledge,
+only as supplementary context.
+
+The agent must identify supplementary information and inferences rather than
+presenting them as documented Akamai Functions behavior. When practical,
+answers cite the relevant reference section or source file.
+
+---
 
 ## Provision
 
