@@ -6,18 +6,17 @@ correctly and answer questions accurately.
 
 Works out of the box with **Claude Code**, **GitHub Copilot**, **Codex**, and
 **Google Antigravity IDE**. All four agents receive the same project rules from
-`AGENTS.md` and are instructed to read the compiled Akamai Functions API
-reference before writing code and search it before answering Akamai
-Functions-specific questions.
+`AGENTS.md` and are instructed to use the compiled Akamai Functions
+documentation reference when generating code or answering platform questions.
 
 ---
 
 ## How it works
 
-1. **A curated Akamai Functions API reference** is included at `docs/_compiled/functions-reference.md`.
+1. **A curated reference compiled from the Akamai Functions technical
+   documentation** is included at `docs/_compiled/functions-reference.md`.
 2. **The AI agent uses that reference first** before writing code or answering
-   Akamai Functions-specific questions, following the shared instructions in
-   `AGENTS.md` and small agent-specific adapters.
+   Akamai Functions-specific questions.
 3. **You describe a function or ask a question.** The agent either generates a
    complete, deployable Akamai Function under `functions/<function-name>/` or
    provides a reference-grounded answer.
