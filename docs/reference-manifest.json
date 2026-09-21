@@ -125,7 +125,7 @@
     "https://techdocs.akamai.com/akamai-functions/docs/quickstart": {
       "active": true,
       "content_sha256": "e441db0646566bba540d0a47949f91952774ef8bef8dfc78c7415a5439854de8",
-      "etag": "\"ce905431f00a340341f9bd574c33553d98f738fe-6f35649d6c8cd2953a36717b54333eca7839e1dd:expanded|7cc18a0bf16e999a0fed848ac467b1d3f244f5ac:public|c88ec63b\"",
+      "etag": "\"ce905431f00a340341f9bd574c33553d98f738fe-ca210664d66beddd38962476950af8251f6d5442:expanded|7cc18a0bf16e999a0fed848ac467b1d3f244f5ac:public|c88ec63b\"",
       "filepath": "docs/_source/techdocs-akamai-com/quickstart.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/quickstart.md"
