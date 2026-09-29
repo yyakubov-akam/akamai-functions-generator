@@ -1,8 +1,9 @@
 ---
 updatedAt: 2026-06-12T01:15:19.000Z
+agentTools:
+  siteIndex: https://techdocs.akamai.com/llms.txt
+  projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
 ---
-
-Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further. Append .md to any documentation page URL to get its markdown version.
 
 # Stream data from Linode Object Store
 

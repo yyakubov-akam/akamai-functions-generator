@@ -1,8 +1,9 @@
 ---
 updatedAt: 2026-08-05T21:52:57.000Z
+agentTools:
+  siteIndex: https://techdocs.akamai.com/llms.txt
+  projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
 ---
-
-Fetch the complete documentation index at: https://techdocs.akamai.com/akamai-functions/llms.txt. Use this file to discover all available pages before exploring further. Append .md to any documentation page URL to get its markdown version.
 
 # Deploy and specify application variables
 

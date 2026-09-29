@@ -45,6 +45,10 @@ decision must still be checked against the active exact sources above.
 - Preserve the source's level of obligation. A recommendation, tutorial
   prerequisite, example version, or observed build version must not become a
   platform-wide requirement or `NEVER` prohibition.
+- Write each Runtime Prohibitions entry as a plain statement of the constraint
+  and its documented consequence, without capitalized `NEVER`/`MUST` markers.
+  Put facts that restrict nothing, such as CLI defaults or which duplicate
+  value wins, in the API Reference.
 - Keep login-session duration, access-token expiration, application lifecycle,
   and other distinct operational concepts separate. Do not transfer a duration
   or rule from one concept to another.

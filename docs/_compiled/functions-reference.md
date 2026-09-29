@@ -5,36 +5,36 @@
 
 ## 1. Runtime Prohibitions
 
-Every item in this section is a hard platform, runtime, deployment, or tooling constraint. When a source does not state the exact enforcement error, that is stated explicitly instead of inventing one.
+Each entry states a platform, runtime, deployment, or tooling constraint and its documented consequence. When a source does not state the exact enforcement error, the entry says so rather than inventing one. Defaults and other facts that restrict nothing are in §4.
 
 ### 1.1 Platform and runtime
 
 **Sources:** [docs/_source/techdocs-akamai-com/welcome.md](../_source/techdocs-akamai-com/welcome.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/webassembly-language-support-matrix.md](../_source/techdocs-akamai-com/webassembly-language-support-matrix.md)
 
-- **Code that is not compiled to WebAssembly MUST NOT be deployed.** Akamai Functions executes Spin applications as WebAssembly; non-Wasm code cannot run on the platform.
-- **Languages lacking both WASI support and a Spin SDK are not documented to run.** The language matrix says that either WASI support (at least Preview 1) or a Spin SDK is sufficient. Rust, Go, JavaScript, and Python are specifically highlighted as production suggestions; that recommendation is not an exclusive platform support list.
-- **Deployment without the `spin aka` plugin is NOT supported.** The application cannot be deployed to Akamai Functions through the documented workflow.
-- **General-availability access is NOT available.** The platform is in limited availability/public preview and requires sign-up/onboarding; users without preview access cannot deploy.
-- **Runtime configuration changes are NOT supported.** Configuration changes cannot be hot-swapped at runtime; application-variable changes create a new deployment and increment the version.
-- **Custom triggers are NOT supported.** Only the `http` trigger type is currently supported; a manifest using another or custom trigger cannot run on Akamai Functions.
-- **SQLite storage is NOT supported on Akamai Functions.** Do not confuse this with local KV testing, which uses `.spin/sqlite_key_value.db`; a deployed application cannot use SQLite storage as a platform capability.
-- **The Redis trigger is NOT supported.** A Redis-triggered component cannot be deployed, although outbound Redis is listed as a supported API.
-- **`wasi-blobstore` and `wasi-messaging` are NOT supported in Spin or Akamai Functions.** Components requiring either interface cannot run.
-- **Serverless AI is NOT generally available.** It is available only under Limited Access; code must not assume access.
+- Akamai Functions runs Spin applications compiled to WebAssembly. Code that is not compiled to WebAssembly cannot run on the platform.
+- A language needs WASI support (at least Preview 1) or a Spin SDK to run; either one is sufficient. Rust, Go, JavaScript, and Python are highlighted as production suggestions, which is a recommendation and not an exclusive support list. Languages with neither are not documented to run.
+- Deployment to Akamai Functions goes through the `spin aka` plugin; no other deployment path is documented.
+- The platform is in limited availability / Public Preview. Users without preview access (sign-up and onboarding) cannot log in and deploy.
+- Configuration cannot be hot-swapped at runtime. Changing application variables creates a new deployment and increments the version.
+- Only the `http` trigger type is supported. A manifest that uses another or a custom trigger cannot run on Akamai Functions.
+- SQLite storage is not supported on Akamai Functions. Local KV testing persists to `.spin/sqlite_key_value.db`, but that is local tooling, not a platform capability available to a deployed application.
+- The Redis trigger is not supported, so a Redis-triggered component cannot be deployed. Outbound Redis is a separate, supported API.
+- `wasi-blobstore` and `wasi-messaging` are not supported in Spin or Akamai Functions. Components that require either interface cannot run.
+- Serverless AI is available only under Limited Access. Code cannot assume access to it.
 
 ### 1.2 Execution and storage quotas
 
 **Sources:** [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md](../_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md)
 
-- **NEVER exceed 128 MiB of memory per function execution.** The source defines 128 MiB as the hard memory limit; it does not state the exact termination/error text.
-- **NEVER exceed 50 MiB of total application size.** The application exceeds the platform size limit; the source does not state the exact deployment error.
-- **NEVER let a request handler run longer than 30 seconds.** The handler exceeds the platform duration limit; the source does not state the exact termination/error text.
-- **NEVER exceed 10 MiB for a request or response.** The request/response exceeds the platform size limit; the source does not state whether enforcement rejects or truncates it.
-- **NEVER exceed 2 GB of total KV storage across all store instances.** The application exceeds its KV storage quota; the source does not state the exact write error.
-- **NEVER exceed 1,000 KV read requests per second.** The application exceeds its experimental KV read quota; the source does not state the exact throttling response.
-- **NEVER exceed 50 KV write requests per second.** The application exceeds its experimental KV write quota; the source does not state the exact throttling response.
-- **NEVER store a KV value larger than 1 MB.** The value exceeds the KV value-size limit; the source does not state the exact write error.
-- **NEVER use a KV key larger than 8 KB.** The key exceeds the KV key-size limit; the source does not state the exact write error.
+- Memory per function execution is limited to 128 MiB. The source does not state the termination or error text when the limit is exceeded.
+- Total application size is limited to 50 MiB. The source does not state the deployment error for an oversized application.
+- A request handler can run for at most 30 seconds. The source does not state the termination or error text when the limit is exceeded.
+- A request or response can be at most 10 MiB. The source does not state whether an oversized payload is rejected or truncated.
+- Total KV storage across all store instances is limited to 2 GB. The source does not state the write error when the quota is exceeded.
+- KV reads are limited to 1,000 requests per second. This is an experimentation-level limit; the source does not state the throttling response.
+- KV writes are limited to 50 requests per second. This is an experimentation-level limit; the source does not state the throttling response.
+- A KV value can be at most 1 MB. The source does not state the write error for an oversized value.
+- A KV key can be at most 8 KB. The source does not state the write error for an oversized key.
 
 The dedicated quotas page defines 30 seconds as the request-handler limit. The comparison page separately describes Akamai Functions execution time as “30 seconds default, extendable.” These statements conflict. Use 30 seconds as the canonical generated limit and do not assume an extension is available unless Akamai explicitly grants one.
 
@@ -44,83 +44,76 @@ KV query-rate limits are described as experimentation-level limits and can be in
 
 **Sources:** [docs/_source/techdocs-akamai-com/use-the-key-value-store.md](../_source/techdocs-akamai-com/use-the-key-value-store.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/use-cases.md](../_source/techdocs-akamai-com/use-cases.md)
 
-- **NEVER use `wasi:keyvalue/atomic`.** The interface is not supported; a component importing it cannot use that capability.
-- **NEVER configure a deployed `key_value_stores` label other than exactly `"default"`.** The Akamai Functions manifest accepts only `"default"`; any other label fails deployment/use.
-- **NEVER attempt to share a KV store between applications.** Stores are scoped to a single application, so another application cannot access the same store.
-- **NEVER use EdgeKV as if it were the Akamai Functions KV store.** EdgeKV is not compatible with Akamai Functions, so those APIs cannot access this store.
-- **NEVER treat an EdgeKV Admin API integration as direct compatibility with the Akamai Functions KV store.** The use-cases page says a Function can push data into EdgeKV Admin APIs, while the KV guide says EdgeKV and Functions KV are separate and incompatible. Preserve that service/API boundary.
+- `wasi:keyvalue/atomic` is not supported. A component that imports it cannot use that capability.
+- The only `key_value_stores` label Akamai Functions accepts is `"default"`. The source does not state the exact error for another label.
+- A KV store is scoped to a single application. Another application cannot access the same store.
+- EdgeKV is not compatible with Akamai Functions. EdgeKV APIs cannot access the Akamai Functions KV store. The use-cases page separately describes a Function pushing data into EdgeKV Admin APIs; that cross-service integration (§4.12, §4.19) does not make the two stores interchangeable.
 
 ### 1.4 Outbound networking and databases
 
 **Sources:** [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/query-relational-databases-mysql.md](../_source/techdocs-akamai-com/query-relational-databases-mysql.md), [docs/_source/techdocs-akamai-com/query-relational-databases-postgresql.md](../_source/techdocs-akamai-com/query-relational-databases-postgresql.md), [docs/_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md](../_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md)
 
-- **NEVER call an outbound host that is absent from `allowed_outbound_hosts` in `spin.toml`.** The capabilities-based security model denies the outbound request.
-- **NEVER use `localhost` or a short service name for inter-application communication.** These names do not resolve like Docker Compose or Kubernetes services; use the full public URL such as `https://<app-id>.fwf.app`.
-- **NEVER omit the `mysql://` protocol from a MySQL entry in `allowed_outbound_hosts`.** The MySQL outbound capability is not granted.
-- **NEVER configure PostgreSQL outbound connectivity without `postgres://` and port `5432`.** The PostgreSQL request lacks the required outbound capability.
-- **NEVER omit the component's variable mapping for a database connection string.** The documented MySQL and PostgreSQL integrations read mapped values through `Variables.get(...)`; an unmapped variable is unavailable to the component.
-- **NEVER omit the Spin database SDK capability used by the documented integration.** The exact examples use `@spinframework/spin-postgres` with `Postgres.open(connectionString)` and `@spinframework/spin-mysql` with `Mysql.open(connectionString)`.
-- **NEVER read “outbound HTTP to any hostname” as implicit network permission.** The comparison means Functions is not restricted to Akamized hostnames as EdgeWorkers is; the Functions capability model still requires every target in `allowed_outbound_hosts`.
-- **NEVER assume Akamai manages every supported database.** The comparison documents MySQL, PostgreSQL, and Redis as customer-managed data stores. It says Linode DBaaS MySQL is compatible, PostgreSQL is not yet compatible with Linode DBaaS, and Akamai does not currently offer managed Redis.
+- Every outbound target has to be listed in `allowed_outbound_hosts` in `spin.toml`. The capabilities-based security model denies requests to unlisted hosts. The comparison page's “outbound HTTP to any hostname” means Functions is not limited to Akamized hostnames as EdgeWorkers is; it does not remove the allowlist.
+- `localhost` and short service names do not resolve to other applications the way Docker Compose or Kubernetes service names do. Inter-application calls use the full public URL, such as `https://<app-id>.fwf.app`.
+- A MySQL entry in `allowed_outbound_hosts` needs the `mysql://` protocol. Without it, the MySQL outbound capability is not granted.
+- PostgreSQL outbound connectivity is configured with `postgres://` and port `5432`. Without that entry, the PostgreSQL request lacks the outbound capability.
+- The documented MySQL and PostgreSQL integrations read the connection string through `Variables.get(...)` from a component variable mapping. An unmapped variable is not available to the component.
+- The documented database integrations use the Spin SDK packages `@spinframework/spin-mysql` (`Mysql.open(connectionString)`) and `@spinframework/spin-postgres` (`Postgres.open(connectionString)`). Without the package, the `open` call is not available.
 
 ### 1.5 Application variables and deployment versions
 
 **Sources:** [docs/_source/techdocs-akamai-com/deploy-app-variables.md](../_source/techdocs-akamai-com/deploy-app-variables.md), [docs/_source/techdocs-akamai-com/update-an-application.md](../_source/techdocs-akamai-com/update-an-application.md), [docs/_source/techdocs-akamai-com/stream-data-from-linode-object-store.md](../_source/techdocs-akamai-com/stream-data-from-linode-object-store.md)
 
-- **NEVER use a variable in code unless it is linked in the component's manifest configuration.** `Variables.get()` can only access variables exposed to that component.
-- **NEVER mismatch a `spin.toml` variable key and the string passed to `Variables.get()`.** The lookup does not retrieve the intended value.
-- **NEVER continue an object-store request when a required variable is empty.** The documented handler must return HTTP `500` with `Application not configured correctly`.
-- **Re-specify required application variables when updating an application.** The update guide explicitly instructs users to supply them on the new `spin aka deploy`; it does not document the exact runtime result of omitting a previously supplied value.
-- **NEVER assume a variable override is a live runtime change.** `spin aka deploy --variable ...` creates a new deployment and increments the version.
-- **Application variables are NOT documented as PCI-assessed cryptography.** They are encrypted at rest and in transit, but the underlying cryptographic implementations have not been assessed for PCI compliance.
+- `Variables.get()` can read only variables linked to the component in its manifest configuration. An unlinked variable is not accessible.
+- The key in `spin.toml` and the string passed to `Variables.get()` have to match exactly. A mismatched key does not retrieve the intended value.
+- In the object-store tutorial, a handler with any empty required variable returns HTTP `500` with `Application not configured correctly` instead of continuing.
+- The update guide instructs users to supply required application variables again on the new `spin aka deploy`. It does not document the runtime result of omitting a previously supplied value.
+- A `spin aka deploy --variable ...` override is not a live runtime change. It creates a new deployment and increments the version.
+- Application variables are encrypted at rest and in transit, but the underlying cryptographic implementations have not been assessed for PCI compliance.
 
 ### 1.6 Updates, deletion, and account security
 
 **Sources:** [docs/_source/techdocs-akamai-com/update-an-application.md](../_source/techdocs-akamai-com/update-an-application.md), [docs/_source/techdocs-akamai-com/delete-an-application.md](../_source/techdocs-akamai-com/delete-an-application.md), [docs/_source/techdocs-akamai-com/manage-accounts.md](../_source/techdocs-akamai-com/manage-accounts.md)
 
-- **NEVER rely on multiple application versions running simultaneously for canary or blue-green routing.** Akamai Functions does not support simultaneous-version routing; in-flight requests finish on the previous version, then traffic uses the update.
-- **NEVER delete an application unless permanent removal is intended.** Deletion cannot be undone.
-- **Role-based access control is NOT supported.** Every team-account member has the same permissions and can permanently delete any application in that account.
-- **NEVER assume team-account context is selected automatically.** Actions default to the personal/current account unless `--account-name` or `--account-id` selects a team account.
+- Akamai Functions does not route traffic to multiple application versions at once, so canary and blue-green routing are unavailable. In-flight requests finish on the previous version, then traffic uses the update.
+- Deleting an application is permanent and cannot be undone.
+- Team accounts have no role-based access control. Every member has the same permissions and can permanently delete any application in the account.
 
 ### 1.7 Cron jobs
 
 **Sources:** [docs/_source/techdocs-akamai-com/schedule-tasks-with-cron-jobs-in-spin.md](../_source/techdocs-akamai-com/schedule-tasks-with-cron-jobs-in-spin.md), [docs/_source/techdocs-akamai-com/aka-command-reference.md](../_source/techdocs-akamai-com/aka-command-reference.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md)
 
-- **Cron jobs are NOT production-stable.** They are Tech Preview/UNSTABLE and command behavior can change.
-- **NEVER use a non-UTC cron schedule.** All schedules are interpreted in UTC, so an unconverted local time runs at the wrong time.
-- **NEVER create two cron jobs in one application with the same combination of schedule and path-and-query.** That pair must be unique, so the duplicate cannot be created as documented.
-- **NEVER omit `--schedule <SCHEDULE>` from the canonical `spin aka [app] cron create` command.** The command reference marks it required and the CLI rejects the incomplete command.
-- **NEVER omit `<NAME>` from `spin aka [app] cron delete`.** The canonical command requires the positional name and cannot identify a job without it.
+- Cron jobs are Tech Preview and marked `UNSTABLE` in the CLI, so command behavior can change.
+- All cron schedules are interpreted in UTC. A schedule written in local time runs at a different local time than intended.
+- Within one application, each combination of schedule and path-and-query has to be unique. The source does not state the error returned for a duplicate.
+- `spin aka [app] cron create` requires `--schedule <SCHEDULE>` (usage line `spin aka app cron create [OPTIONS] --schedule <SCHEDULE>`). The source does not reproduce the CLI's error for an incomplete command.
+- `spin aka [app] cron delete` requires the positional `<NAME>` of the job to delete.
 
 ### 1.8 Language and toolchain constraints
 
 **Sources:** [docs/_source/techdocs-akamai-com/quickstart.md](../_source/techdocs-akamai-com/quickstart.md), [docs/_source/techdocs-akamai-com/webassembly-language-support-matrix.md](../_source/techdocs-akamai-com/webassembly-language-support-matrix.md), [docs/_source/techdocs-akamai-com/query-relational-databases-mysql.md](../_source/techdocs-akamai-com/query-relational-databases-mysql.md), [docs/_source/techdocs-akamai-com/integrate-with-property-manager.md](../_source/techdocs-akamai-com/integrate-with-property-manager.md), [docs/_source/techdocs-akamai-com/build-a-supabase-cache-proxy.md](../_source/techdocs-akamai-com/build-a-supabase-cache-proxy.md), [docs/_source/techdocs-akamai-com/stream-data-from-linode-object-store.md](../_source/techdocs-akamai-com/stream-data-from-linode-object-store.md)
 
-- **For the documented object-store tutorial, do not use Node.js older than 22.** That tutorial lists Node.js 22 or later as a prerequisite. Separately, the quickstart recommends Node.js 22 or newer and the MySQL tutorial recommends at least Node.js 21; those two recommendations are not platform-wide minimum versions.
-- **NEVER build the documented Go component with the standard Go compiler.** Standard Go cannot produce the required WASI exports; use TinyGo 0.27 or above.
-- **NEVER build the documented Go SDK application without `CGO_ENABLED=1`.** The Go SDK build requires `CGO_ENABLED=1`.
-- **NEVER compile the documented Rust component without the `wasm32-wasip1` target.** The Rust toolchain cannot produce the required target artifact without `wasm32-wasip1`.
-- **NEVER deploy an application without compiling it to WebAssembly.** Use `spin build` before deployment or the documented `spin aka deploy --build` option for a local application.
+- The object-store tutorial lists Node.js 22 or later as a prerequisite. The quickstart recommends Node.js 22 or newer and the MySQL tutorial recommends at least Node.js 21. These are tutorial prerequisites and recommendations, not platform-wide minimum versions.
+- The documented Go component is built with TinyGo 0.27 or above, because the standard Go compiler cannot produce the required WASI exports.
+- The documented Go SDK build requires `CGO_ENABLED=1`.
+- The documented Rust component is compiled for the `wasm32-wasip1` target. Without that target installed, the Rust toolchain cannot produce the required artifact.
+- An application has to be compiled to WebAssembly before deployment, with `spin build` or the `spin aka deploy --build` option for a local application.
 
 ### 1.9 CLI constraints
 
-**Sources:** [docs/_source/techdocs-akamai-com/aka-command-reference.md](../_source/techdocs-akamai-com/aka-command-reference.md), [docs/_source/techdocs-akamai-com/deploy-using-github-actions.md](../_source/techdocs-akamai-com/deploy-using-github-actions.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md)
+**Sources:** [docs/_source/techdocs-akamai-com/aka-command-reference.md](../_source/techdocs-akamai-com/aka-command-reference.md), [docs/_source/techdocs-akamai-com/deploy-using-github-actions.md](../_source/techdocs-akamai-com/deploy-using-github-actions.md), [docs/_source/techdocs-akamai-com/quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md), [docs/_source/techdocs-akamai-com/quickstart.md](../_source/techdocs-akamai-com/quickstart.md)
 
-- **NEVER use Spin older than v3.0.0 with the command reference.** The command reference declares Spin compatibility `>=v3.0.0`; commands are not supported there on older Spin versions. The quotas summary separately says the Spin CLI must be `v0.6.0` or newer, which conflicts with the dedicated command reference; use the stricter `>=v3.0.0` requirement.
-- **NEVER set personal-access-token expiration above 90 days.** The CLI rejects values above the documented maximum; the default expiration is 30 days.
-- **NEVER let a CI personal access token expire unnoticed.** It expires after 30 days by default and authentication fails after expiration.
-- **NEVER discard the only displayed copy of a new personal access token.** A token is shown once; failure to save it requires creating/rotating a token.
-- **NEVER request an application-status usage window outside the documented 5-minute to 7-day range.** The `app status --usage-since` option enforces that range. The log `--since` option is documented separately and must not inherit this status-window rule.
-- **NEVER assume the first repeated `--variable` value wins.** The last value for a duplicated key is used, silently replacing earlier values.
-- **NEVER assume `--from` has no default.** It defaults to `./spin.toml`; omitting it makes the CLI use that workspace config.
+- The command reference lists `Spin compatibility: >=v4.0.0` for every `spin aka` command. It does not state what happens with older Spin versions. Two other sources give different version guidance, listed in §4.17: the quotas page says “Spin CLI v0.6.0 or newer,” and the quickstart's Windows instructions link to the Spin v3.6.2 binary release. The sources do not reconcile these.
+- A personal access token's expiration can be at most 90 days (`--expiration-days`, `[max: 90]`). Once a token expires, a new token has to be created to keep using it in a CI/CD pipeline.
+- A new personal access token is displayed only once. If it is not saved, a new token has to be created or the existing one regenerated.
+- `spin aka app status --usage-since` accepts a window of at least 5 minutes and at most 7 days; the CLI enforces this range. No range is documented for `spin aka logs --since`, so the status range does not carry over to logs.
 
 ### 1.10 Property Manager integration
 
 **Sources:** [docs/_source/techdocs-akamai-com/integrate-with-property-manager.md](../_source/techdocs-akamai-com/integrate-with-property-manager.md)
 
-- **NEVER put `https://` or a trailing `/` in the Property Origin Hostname.** Derive it by removing both from the Spin application URL; otherwise the origin value is not the documented hostname form.
-- **NEVER leave Forward Host Header set to an incoming/default host value.** It must be `Origin Hostname`; otherwise request forwarding to the function is incorrect.
+- The property's Origin Hostname is the Spin application URL with `https://` and the trailing `/` removed. A value that keeps either one is not the documented hostname form.
+- **Forward Host Header** has to be set to `Origin Hostname`. With another value, requests are not forwarded to the function as documented.
 
 ---
 
@@ -936,14 +929,18 @@ const response = await fetch('https://<app-id>.fwf.app', {
 
 **Sources:** [docs/_source/techdocs-akamai-com/aka-command-reference.md](../_source/techdocs-akamai-com/aka-command-reference.md), [docs/_source/techdocs-akamai-com/manage-accounts.md](../_source/techdocs-akamai-com/manage-accounts.md), [docs/_source/techdocs-akamai-com/list-and-inspect-your-applications.md](../_source/techdocs-akamai-com/list-and-inspect-your-applications.md), [docs/_source/techdocs-akamai-com/delete-an-application.md](../_source/techdocs-akamai-com/delete-an-application.md), [docs/_source/techdocs-akamai-com/link-an-application.md](../_source/techdocs-akamai-com/link-an-application.md)
 
-Dedicated command-reference signatures:
+The command reference shows `--help` output for plugin v0.7.6 (newest), v0.7.0, and, for some commands, v0.4.0. Each command heading carries a single `Spin compatibility: >=v4.0.0` line above all of its version blocks; the page does not map individual plugin versions to Spin versions. The signatures below are from the v0.7.6 output.
+
+Top-level commands (`spin aka --help`): `app`, `cron` (UNSTABLE), `deploy`, `logs`, `auth`, `login`, `send-feedback`, `info`, `help`. Options: `-h, --help`, `-V, --version`. In v0.7.6 `-V, --version` appears only on the top-level command; v0.7.0 subcommands also listed it.
+
+Dedicated command-reference signatures (v0.7.6):
 
 ```text
-spin aka app deploy [OPTIONS]
 spin aka app cron create [OPTIONS] --schedule <SCHEDULE>
 spin aka app cron delete [OPTIONS] <NAME>
 spin aka app cron list [OPTIONS]
 spin aka app delete [OPTIONS]
+spin aka app deploy [OPTIONS]
 spin aka app history [OPTIONS]
 spin aka app link [OPTIONS]
 spin aka app list [OPTIONS]
@@ -954,15 +951,47 @@ spin aka auth login [OPTIONS]
 spin aka auth token create [OPTIONS] --name <NAME>
 spin aka auth token delete [OPTIONS] --id <ID>
 spin aka auth token list [OPTIONS]
-spin aka auth token regenerate [OPTIONS] --id <ID>
+spin aka auth token regenerate --id <ID>
 spin aka cron create [OPTIONS] --schedule <SCHEDULE>
 spin aka cron delete [OPTIONS] <NAME>
 spin aka cron list [OPTIONS]
 spin aka deploy [OPTIONS]
 spin aka info [OPTIONS]
+spin aka login [OPTIONS]
 spin aka logs [OPTIONS]
 spin aka send-feedback
 ```
+
+In v0.7.6, `spin aka app deploy` and `spin aka app logs` have the same help text and options as the top-level `deploy` and `logs` apart from the usage line, and `spin aka app cron` lists the same `list`, `create`, and `delete` subcommands as `spin aka cron`. v0.7.6 also documents `help` subcommands (`spin aka help`, `spin aka app help`, `spin aka app cron help`, `spin aka auth help`, `spin aka auth token help`, `spin aka cron help`) that print the parent command's usage.
+
+Shared selector options (on most app-scoped commands):
+
+- `--account-id <ACCOUNT_ID>` / `--account-name <ACCOUNT_NAME>`: account to operate in; if neither is given, the current account context is used.
+- `--app-id <APP_ID>` / `--app-name <APP_NAME>`: app to operate on; if neither is given, the app is inferred from the workspace config.
+- `-f, --from <PATH>`: a `spin.toml` file or a directory containing one; defaults to `./spin.toml`.
+- `--format <FORMAT>`: `plain` (default) or `json` on `app list`, `app status`, `app history`, and `info`; `auth token create` also accepts `table` and `yaml` (default `plain`), and `auth token list` accepts `plain`, `table`, `json`, and `yaml` (default `table`).
+
+Per-command options (v0.7.6):
+
+| Command | Options and defaults |
+|---|---|
+| `deploy` / `app deploy` | `--build` (run `spin build` first for local apps; ignored for remote apps; env `SPIN_ALWAYS_BUILD`); `--cache-dir <CACHE_DIR>`; `--variable <KEY=VALUE \| @FILE.json \| @FILE.toml>` (repeatable; for a duplicated key the last value is used); `--app-id` (if omitted, the app is inferred from the workspace config, and if none is inferred a new app is created); `--create-name <NEW_APP_NAME>` (only when deploying to an app that does not exist yet); `--no-confirm`; `--skip-readiness-check`; account selectors; `--from` |
+| `logs` / `app logs` | `-v, --verbose`; `-n, --max-lines <MAX_LINES>` (lines from the end, default `10`); `--since <SINCE>` (default `7d`); `--component-id` (default: all components); `--deployment-version` (default: latest deployment version); `--region` (default: all regions); account and app selectors; `--from` |
+| `app status` | `--format`; `--usage-since <USAGE_SINCE>` (default `7d`, minimum 5 minutes, maximum 7 days); account and app selectors; `--from` |
+| `app list` | `--format`; `--verbose`; account selectors |
+| `app history` | Lists past events for an app. `--format`; account and app selectors; `--from` |
+| `app link` | `--app-name` / `--app-id` of the app to link to (selected from an interactive prompt if omitted); account selectors; `--from` (workspace to link) |
+| `app unlink` | `--from` (workspace to unlink) only. v0.7.0 also listed account selectors; v0.7.6 does not. |
+| `app delete` | `--no-confirm` (skip the delete confirmation prompt); account and app selectors; `--from` |
+| `login` / `auth login` | `--token <TOKEN>` (personal access token; env `SPIN_AKA_ACCESS_TOKEN`) |
+| `auth token create` | `-n, --name <NAME>` (required); `-d, --description`; `-e, --expiration-days` (default `30`, max `90`); `-s, --short` (print only the token); `--format` |
+| `auth token list` | `--format`; `--verbose` |
+| `auth token delete` | `-i, --id <ID>` (required); `--no-confirm` |
+| `auth token regenerate` | `-i, --id <ID>` (required) |
+| `info` | `--format`. Prints user and workspace information. |
+| `send-feedback` | No options besides `--help`. |
+
+Time values for `--since` and `--usage-since` accept an RFC3339 timestamp, a Unix epoch timestamp in seconds, or a duration from the present: a number followed by `s`, `m`, `h`, or `d` (for example `30m`).
 
 Additional exact command forms from lifecycle, account, and CI articles:
 
@@ -976,14 +1005,9 @@ spin aka deploy --variable <key>=<value>
 gh secret set <name>
 ```
 
-- Account selection: use either `--account-id` or `--account-name`; otherwise the current account context is used.
-- App selection: use either `--app-id` or `--app-name`; otherwise infer the app from workspace config (`./spin.toml`).
-- Time values accept RFC3339 timestamps, Unix epoch timestamps, or durations such as `30m` and `7d`.
-- Repeated `--variable` flags are accepted; the last occurrence of a duplicated key wins.
-- `--from` defaults to `./spin.toml`.
 - `spin aka app list` prints names as plain text by default; `--verbose` includes details such as App IDs, and `--format json` emits JSON.
 - `spin aka app status` uses the application linked to the workspace unless `--app-name` selects another.
-- `spin aka info` displays account name and ID and requires plugin v0.4 or higher.
+- The account guide says `spin aka info` displays the account name and ID and requires plugin v0.4 or higher.
 
 Inspection and lifecycle examples:
 
@@ -1023,6 +1047,14 @@ spin aka cron delete [OPTIONS] <NAME>
 spin aka cron list [OPTIONS]
 ```
 
+`cron create` options (v0.7.6): `-s, --schedule <SCHEDULE>` (required; for example `"0 0 * * *"` for every day at midnight), `-p, --path-and-query <PATH_AND_QUERY>` (the request path and query the job calls, for example `"/api/cron?foo=bar"`), `--name <NAME>` (optional; an auto-generated name is used if omitted), plus the shared account, app, and `--from` selectors. `cron delete` takes the job name as a positional argument; `cron list` takes only the shared selectors.
+
+Example assembled from the documented options:
+
+```shell
+spin aka cron create --schedule "*/5 * * * *" --path-and-query "/" --name cron-job-1
+```
+
 The cron tutorial separately gives positional forms:
 
 ```text
@@ -1037,7 +1069,7 @@ Exact tutorial example:
 spin aka cron create "*/5 * * * *" "/" "cron-job-1"
 ```
 
-The positional create form conflicts with the dedicated command reference's required `--schedule` option. Preserve it as tutorial evidence, but use `spin aka cron create [OPTIONS] --schedule <SCHEDULE>` as the canonical syntax for generated commands.
+The positional create form conflicts with the dedicated command reference's required `--schedule` option. Preserve it as tutorial evidence, but use `spin aka cron create [OPTIONS] --schedule <SCHEDULE>` with `--path-and-query` and `--name` as the canonical syntax for generated commands.
 
 ### 4.15 Deployment, updates, and CI
 
@@ -1129,10 +1161,10 @@ Deployment through `spin aka deploy` requires authentication through the documen
 | Area | Exact source note |
 |---|---|
 | Platform | Limited availability / Public Preview |
-| Command reference | Spin compatibility `>=v3.0.0`; plugin versions documented: v0.4.0 and v0.7.0 |
-| Quotas article | Separately says Spin CLI v0.6.0 or newer; use the stricter dedicated command-reference requirement (`>=v3.0.0`) when generating commands |
+| Command reference | Every command lists `Spin compatibility: >=v4.0.0`; `--help` output shown for `aka` plugin v0.7.6, v0.7.0, and, for some commands, v0.4.0. The page does not say which plugin version needs which Spin version |
+| Quotas article | Says “Akamai Functions supports Spin CLI v0.6.0 or newer.” This conflicts with the command reference's `>=v4.0.0`. The sources do not explain the difference; when generating commands, follow the dedicated command reference |
 | JavaScript/TypeScript quickstart | Recommends Node.js 22 or newer; documentation example uses Node.js 22.13.0 |
-| Windows quickstart | Links to the Spin 3.6.2 Windows binary release |
+| Windows quickstart | Links to the Spin v3.6.2 Windows binary release. This conflicts with the command reference's `Spin compatibility: >=v4.0.0`; the macOS/Linux instructions use an install script with no pinned version |
 | Rust quickstart | Requires target `wasm32-wasip1` |
 | Go quickstart | TinyGo 0.27 or above, `CGO_ENABLED=1`; Go SDK v0.10.0 appears in build output |
 | MySQL tutorial | Node.js 21 or higher recommended; requires Linode Managed Databases, `@spinframework/spin-mysql`, and `@spinframework/spin-variables` |
@@ -1283,12 +1315,13 @@ cron schedule    -> deployed HTTP path -> one of the handlers above
 
 | Command | Implicit context | Related command/data |
 |---|---|---|
-| `spin aka app deploy` / `spin aka deploy` | Current account and `./spin.toml` unless selectors override | `--variable`; linked app or app selector |
+| `spin aka app deploy` / `spin aka deploy` | Current account and `./spin.toml` unless selectors override; app inferred from workspace config, and a new app is created if none is inferred | `--variable`, `--create-name`, `--no-confirm`, `--skip-readiness-check`; linked app or `--app-id` |
 | `spin aka app list` | Current/personal account unless account selector is supplied | `--verbose`, `--format json` reveal IDs/details |
 | `spin aka app status` | Workspace-linked app unless `--app-name` is supplied | `--usage-since` accepts supported time formats/range |
-| `spin aka logs` | Workspace-linked app unless `--app-name` is supplied | Captured stdout/stderr; `--since` time selector |
+| `spin aka logs` | Workspace-linked app unless `--app-name` is supplied; latest deployment version, all components, all regions | Captured stdout/stderr; `--since` (default `7d`), `--max-lines` (default `10`), `--component-id`, `--deployment-version`, `--region` |
 | `spin aka auth token create` | Current user | Save once, store as `SPIN_AKA_ACCESS_TOKEN`, rotate before expiration |
-| `spin aka app delete` | Selected/current account and app | Permanent; any team member can perform it because RBAC is absent |
+| `spin aka app delete` | Selected/current account and app | Permanent; any team member can perform it because RBAC is absent; `--no-confirm` skips the prompt |
+| `spin aka app link` / `app unlink` | Workspace at `--from` | `link` prompts for the app if `--app-name`/`--app-id` is omitted; in v0.7.6 `unlink` accepts only `--from` |
 | `spin aka cron create/list/delete` | Current/deployed app | Operates on HTTP paths; Tech Preview/UNSTABLE |
 
 ### 5.5 Cross-platform and data-service interactions
@@ -1310,7 +1343,7 @@ This table accounts for every active entry in `docs/reference-manifest.json`. `I
 
 | Active exact source | Status | Compiled coverage or exclusion reason |
 |---|---|---|
-| [aka-command-reference.md](../_source/techdocs-akamai-com/aka-command-reference.md) | Included | §1.7 Cron jobs; §1.9 CLI constraints; §4.13 CLI command reference; §4.14 Cron CLI |
+| [aka-command-reference.md](../_source/techdocs-akamai-com/aka-command-reference.md) | Included | §1.7 Cron jobs; §1.9 CLI constraints; §4.13 CLI command reference (v0.7.6 signatures and options); §4.14 Cron CLI; §4.17 compatibility ledger; §5.4 CLI context |
 | [akamai-functions-and-edgeworkers-comparison.md](../_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md) | Included | §1.2 execution-limit conflict; §1.4 outbound networking and databases; §4.12 platform interfaces; §4.19 workload placement; §5.5 cross-platform interactions |
 | [application-logs.md](../_source/techdocs-akamai-com/application-logs.md) | Included | §4.10 Logging; §4.18 Platform and operational reference; §5.4 CLI context and lifecycle interactions |
 | [build-a-supabase-cache-proxy.md](../_source/techdocs-akamai-com/build-a-supabase-cache-proxy.md) | Included | §2.7 Supabase; §4.4 Key-value store; §4.7 Supabase client; §6.11 and §6.14 failure patterns |
@@ -1326,7 +1359,7 @@ This table accounts for every active entry in `docs/reference-manifest.json`. `I
 | [query-relational-databases-mysql.md](../_source/techdocs-akamai-com/query-relational-databases-mysql.md) | Included | §2.4 MySQL; §4.5 MySQL; §5.3 required capabilities; §6.7 failure pattern |
 | [query-relational-databases-postgresql.md](../_source/techdocs-akamai-com/query-relational-databases-postgresql.md) | Included | §2.5 PostgreSQL; §4.6 PostgreSQL; §5.3 required capabilities; §6.3, §6.4, and §6.7 failure patterns |
 | [quickstart.md](../_source/techdocs-akamai-com/quickstart.md) | Included | §2.1, §2.9, and §2.10 import rules; §3.1–§3.3 handler reference; §4.17 compatibility ledger; §4.18 operational reference |
-| [quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md) | Included | §1.1 and §1.2 runtime limits; §4.12 Other platform interfaces; §5.3 required capabilities |
+| [quotas-and-limits.md](../_source/techdocs-akamai-com/quotas-and-limits.md) | Included | §1.1 and §1.2 runtime limits; §1.9 and §4.17 Spin version note; §4.12 Other platform interfaces; §5.3 required capabilities |
 | [related-standards.md](../_source/techdocs-akamai-com/related-standards.md) | Excluded | Curated external standards and navigation links only; it defines no source-specific Akamai Functions API, constraint, operational fact, or working code pattern |
 | [schedule-tasks-with-cron-jobs-in-spin.md](../_source/techdocs-akamai-com/schedule-tasks-with-cron-jobs-in-spin.md) | Included | §1.7 Cron jobs; §3.4 Cron invocation; §4.14 Cron CLI; §6.15, §6.16, and §6.22 failure patterns |
 | [stream-data-from-linode-object-store.md](../_source/techdocs-akamai-com/stream-data-from-linode-object-store.md) | Included | §2.8 S3-compatible object storage and streams; §4.8 S3-compatible object storage; §6.12 and §6.13 failure patterns |
@@ -1490,7 +1523,7 @@ key_value_stores = [ "custom" ]
 key_value_stores = [ "default" ]
 ```
 
-**Symptom:** Akamai Functions accepts only the `"default"` label, so custom-label deployment/use fails.
+**Symptom:** Akamai Functions allows only the `"default"` label, which signals the platform to provision the application's store automatically. The source does not state the error produced by another label.
 
 ### 6.10 Atomic KV or EdgeKV used for the managed store
 
@@ -1575,10 +1608,10 @@ if (key !== ALL_ARTICLES_CACHE_KEY && store.exists(ALL_ARTICLES_CACHE_KEY)) {
 
 ```shell
 # WRONG — schedule copied as local wall-clock time.
-spin aka cron create "0 9 * * *" "/" "local-nine"
+spin aka cron create --schedule "0 9 * * *" --path-and-query "/" --name local-nine
 
 # CORRECT — convert the desired time to UTC before creating the schedule.
-spin aka cron create "<UTC_CRON>" "/" "utc-schedule"
+spin aka cron create --schedule "<UTC_CRON>" --path-and-query "/" --name utc-schedule
 ```
 
 **Symptom:** the job runs according to UTC, at a different local time than intended.
@@ -1672,8 +1705,8 @@ spin aka app delete --app-name <app_name> --account-name <team_name>
 # TUTORIAL FORM
 spin aka cron create "*/5 * * * *" "/" "cron-job-1"
 
-# CANONICAL COMMAND-REFERENCE SHAPE
-spin aka cron create [OPTIONS] --schedule <SCHEDULE>
+# CANONICAL COMMAND-REFERENCE SHAPE (v0.7.6 options)
+spin aka cron create --schedule "*/5 * * * *" --path-and-query "/" --name cron-job-1
 ```
 
-**Symptom:** the tutorial positional form and command-reference option form conflict. Generated commands should follow the dedicated command reference and supply required options for path/name as exposed by the installed plugin version.
+**Symptom:** the tutorial positional form and the command-reference option form conflict. The command reference makes `--schedule` required and exposes the path and name as `--path-and-query` and `--name`; the source does not reproduce the CLI's response to the positional form.

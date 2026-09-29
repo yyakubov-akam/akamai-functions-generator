@@ -51,14 +51,12 @@ dependency-free workflow in `scripts/reference_sync.py`:
 
 ## Think Before Coding
 
-Don't assume. Don't hide confusion. Surface tradeoffs.
-
-Before implementing:
-
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them—don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
+State the assumptions a generated function relies on, such as its routes,
+methods, variables, and outbound hosts. When the request can reasonably be read
+in ways that would produce different routes, responses, or configuration, name
+the readings and ask which one is wanted. Resolve smaller gaps with a sensible
+default and record it in the README. If a simpler design meets the request,
+propose it.
 
 ## Output Structure
 
