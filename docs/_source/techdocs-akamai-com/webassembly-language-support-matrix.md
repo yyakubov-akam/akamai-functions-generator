@@ -90,7 +90,7 @@ These languages, though not in the top 20, enjoy broad use and offer some degree
 
 # Sibling pages
 
-* [aka command reference](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference.md)
+* [Spin aka command reference](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference.md)
 * [HTTP trigger reference](https://techdocs.akamai.com/akamai-functions/docs/http-trigger-reference.md)
 * [WebAssembly standards](https://techdocs.akamai.com/akamai-functions/docs/related-standards.md)
 * [FAQ](https://techdocs.akamai.com/akamai-functions/docs/faq.md)

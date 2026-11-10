@@ -54,7 +54,7 @@ The triggered component can also use the `true-client-ip` header. It returns the
 
 # Sibling pages
 
-* [aka command reference](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference.md)
+* [Spin aka command reference](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference.md)
 * [WebAssembly language support matrix](https://techdocs.akamai.com/akamai-functions/docs/webassembly-language-support-matrix.md)
 * [WebAssembly standards](https://techdocs.akamai.com/akamai-functions/docs/related-standards.md)
 * [FAQ](https://techdocs.akamai.com/akamai-functions/docs/faq.md)

@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-06-22T12:45:15.000Z
+updatedAt: 2026-10-28T20:27:00.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
@@ -13,7 +13,7 @@ In this tutorial we'll build a Spin application that caches data from Supabase u
 
 Before you start this tutorial, make sure you have the following prerequisites. You can also follow the steps in the [Quickstart](https://techdocs.akamai.com/akamai-functions/docs/quickstart) guide to get up and running with Akamai Functions in less than two minutes.
 
-* Sign up for the public preview so you can [login](https://techdocs.akamai.com/akamai-functions/docs/quickstart#login-to-akamai-functions) to Akamai Functions. If you haven’t already requested access, please complete the [Onboarding form](https://fibsu0jcu2g.typeform.com/fwf-preview?typeform-source=developer.fermyon.com).
+* [Sign up for Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/sign-up-for-akamai-functions).
 * [Install Spin](https://techdocs.akamai.com/akamai-functions/docs/quickstart#install-spin) and the [aka Plugin for Spin](https://techdocs.akamai.com/akamai-functions/docs/quickstart#install-the-aka-plugin-for-spin).
 
 # What is Supabase
@@ -826,4 +826,5 @@ You can find the source code for the app in this this tutorial in the [Akamai Fu
 * [Query relational databases: MySQL](https://techdocs.akamai.com/akamai-functions/docs/query-relational-databases-mysql.md)
 * [Query relational databases: PostgreSQL](https://techdocs.akamai.com/akamai-functions/docs/query-relational-databases-postgresql.md)
 * [Schedule tasks with cron jobs in Spin (Tech Preview)](https://techdocs.akamai.com/akamai-functions/docs/schedule-tasks-with-cron-jobs-in-spin.md)
-* [Use the Key Value store](https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store.md)
+* [Use the Key Value store (Limited availability)](https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store.md)
+* [Secure your Akamai Function](https://techdocs.akamai.com/akamai-functions/docs/secure-an-akamai-function.md)

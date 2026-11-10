@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-10-08T15:23:34.000Z
+updatedAt: 2026-11-09T20:44:37.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
@@ -11,7 +11,7 @@ Follow the steps in this Quickstart guide to get up and running with Akamai Func
 
 > 📘
 >
-> To complete this tutorial you need access to the public preview of Akamai Functions. If you haven’t already requested access, please [complete this form](https://fibsu0jcu2g.typeform.com/fwf-preview). The Akamai Functions team will review your request and follow up shortly.
+> To complete this tutorial you need to [Sign up for Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/sign-up-for-akamai-functions).
 
 [block:image]
 {
@@ -464,17 +464,13 @@ You can terminate `spin up` at anytime, by pressing `CTRL+C`.
 
 # Log in to Akamai Functions
 
-To log in you need access to the public preview of Akamai Functions. If you haven’t already, please complete the [Onboarding form](https://fibsu0jcu2g.typeform.com/fwf-preview?typeform-source=developer.fermyon.com). Akamai Functions supports two identity providers, **Akamai Control Center** and **GitHub**. If you have an [Akamai Control Center](https://control.akamai.com/apps/home-page/#/home) account, you can log in using your user ID and password. Otherwise, you need to use GitHub. If both accounts share the same email address, they are automatically cross-linked.
-
-The Akamai Functions team will review your onboarding request and follow up shortly.
+To deploy a new Akamai Function you first need to log into the platform.
 
 > 👍
 >
-> Before you log in using your Akamai Control Center or GitHub account information make sure that you complete the following tasks.
+> To login to Akamai Functions, you need to have the product enabled on your Akamai Control Center contract. If this is not already the case, you can [Sign up for Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/sign-up-for-akamai-functions) or reach out to your Akamai representative.
 >
-> * [Install the `aka` plugin for Spin](https://techdocs.akamai.com/akamai-functions/docs/quickstart#install-the-aka-plugin-for-spin).
-> * Receive the allow-listing status for Akamai Functions.
-> * Request and receive access to the public preview.
+> Only one person in your team needs to add Akamai Functions to your contract. From then on, any Akamai Control Center user coupled to that contract automatically has access to Akamai Functions.
 
 1. Run the  [`spin aka login` command](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference#spin-aka-login).
 
@@ -491,12 +487,11 @@ and follow the prompts.
 Don't worry, we'll wait here for you. You got this.
 ```
 
-3. Authenticate using your Akamai Control Center credentials or your individual GitHub account.
-4. Once you're logged in you need to authorize the `spin` CLI to interact with your Akamai Functions account.
+3. Authenticate using your Akamai Control Center credentials.
 
 # Deploy the application
 
-You can use the [`spin aka deploy` command](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference#spin-aka-deploy) to deploy the application to Akamai Functions.
+You can now use the [`spin aka deploy` command](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference#spin-aka-deploy) to deploy the application to Akamai Functions.
 
 ```shell
 spin aka deploy
@@ -522,9 +517,13 @@ You can `CTRL+Click` on the link in the terminal window to visit the web applica
 
 Congratulations, you’ve now deployed your first Spin application to Akamai Functions!
 
+> 👍
+>
+> By default, `spin aka deploy` deploys the Function in your Personal Account. For production use, you need to deploy the Function in a Team Account by for example passing `--account-name` to the command. See the [Manage accounts](https://techdocs.akamai.com/akamai-functions/docs/manage-accounts) topic in this guide for more information.
+
 # Sibling pages
 
-* [Welcome to Akamai Functions (Limited availability)](https://techdocs.akamai.com/akamai-functions/docs/welcome.md)
+* [Welcome to Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/welcome.md)
 * [Akamai Functions & EdgeWorkers comparison](https://techdocs.akamai.com/akamai-functions/docs/akamai-functions-and-edgeworkers-comparison.md)
 * [Manage  accounts](https://techdocs.akamai.com/akamai-functions/docs/manage-accounts.md)
 * [Tutorials](https://techdocs.akamai.com/akamai-functions/docs/tutorials.md)

@@ -1,11 +1,11 @@
 ---
-updatedAt: 2026-04-02T12:36:47.000Z
+updatedAt: 2026-11-05T19:53:19.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
 ---
 
-# Welcome to Akamai Functions (Limited availability)
+# Welcome to Akamai Functions
 
 Use Akamai Functions to build and run serverless functions hosted on [Akamai Cloud](https://techdocs.akamai.com/cloud-computing/docs/welcome).
 
@@ -39,7 +39,7 @@ Akamai Functions offers:
 
 # Where to start
 
-To get started, you need you need access to the public preview of Akamai Functions. If you haven’t already requested access, please complete the [Onboarding form](https://fibsu0jcu2g.typeform.com/fwf-preview?typeform-source=developer.fermyon.com). The Akamai Functions team will review your request and follow up shortly.
+To get started, you need to [Sign up for Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/sign-up-for-akamai-functions).
 
 > 📘
 >
@@ -53,6 +53,10 @@ Review these core concepts before you use the Quickstart to help you get up and 
 | Application Deployment                 | You can deploy Spin applications to Akamai Functions with a single command using the `spin aka` plugin. Check out the deployment guide and the [`spin aka deploy` command](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference#spin-aka-deploy) for more details.                                                                                                                                                                                                                                                                                                                 |
 | Traffic Routing                        | Akamai Functions uses the Akamai Cloud infrastructure and services to ensure client requests are forwarded to the fastest responding region where your application is available.                                                                                                                                                                                                                                                                                                                                                                        |
 | Integration With Other Akamai Services | You can use any Akamai CDN, Security and Cloud service with your Akamai Functions Spin applications. Whether you want to use Akamai’s [API Acceleration](https://techdocs.akamai.com/api-acceleration/docs/welcome-api-accel) to secure and cache requests and responses to and from your application, secure your application with [App & API Protector](https://techdocs.akamai.com/app-api-protector/docs/welcome), or integrate with Akamai’s managed databases, this is all possible, and fast, as your Akamai Functions runs within Akamai Cloud. |
+
+# Sub pages
+
+* [Sign up for Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/sign-up-for-akamai-functions.md)
 
 # Sibling pages
 

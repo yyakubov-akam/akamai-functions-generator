@@ -125,7 +125,7 @@ Redis support enables a class of workloads that benefit from in-memory speed: se
 
 # Sibling pages
 
-* [Welcome to Akamai Functions (Limited availability)](https://techdocs.akamai.com/akamai-functions/docs/welcome.md)
+* [Welcome to Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/welcome.md)
 * [Quickstart](https://techdocs.akamai.com/akamai-functions/docs/quickstart.md)
 * [Manage  accounts](https://techdocs.akamai.com/akamai-functions/docs/manage-accounts.md)
 * [Tutorials](https://techdocs.akamai.com/akamai-functions/docs/tutorials.md)

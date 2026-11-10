@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-10-08T15:11:48.000Z
+updatedAt: 2026-10-28T20:25:42.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
@@ -13,7 +13,7 @@ This tutorial guides shows you how to build a Spin application to retrieve and s
 
 Before you start this tutorial, make sure you have the following prerequisites. You can also follow the steps in the [Quickstart](https://techdocs.akamai.com/akamai-functions/docs/quickstart) guide to get up and running with Akamai Functions in less than two minutes.
 
-* Sign up for the public preview so you can [login](https://techdocs.akamai.com/akamai-functions/docs/quickstart#login-to-akamai-functions) to Akamai Functions. If you haven’t already requested access, please complete the [Onboarding form](https://fibsu0jcu2g.typeform.com/fwf-preview?typeform-source=developer.fermyon.com).
+* [Sign up for Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/sign-up-for-akamai-functions).
 * [Install Spin](https://techdocs.akamai.com/akamai-functions/docs/quickstart#install-spin) and the [aka Plugin for Spin](https://techdocs.akamai.com/akamai-functions/docs/quickstart#install-the-aka-plugin-for-spin).
 * A MySQL database server deployed on your Linode account.
   * A client for connecting and interacting with the MySQL database. For this tutorial, we’ll use [MySQL Workbench](https://dev.mysql.com/doc/workbench/en/).
@@ -25,7 +25,7 @@ Before you start this tutorial, make sure you have the following prerequisites. 
 
 # Configure MySQL database server access
 
-With a MySQL cluster deployed to your Linode account, you must explicitly allow inbound connections using either IPv6 or IPv4 addresses. For the sake of this tutorial and during public preview of Akamai Functions, we’ll use the `0.0.0.0/0` CIDR to allow inbound connectivity from any host to the MySQL database server.
+With a MySQL cluster deployed to your Linode account, you must explicitly allow inbound connections using either IPv6 or IPv4 addresses. For the sake of this tutorial we’ll use the `0.0.0.0/0` CIDR to allow inbound connectivity from any host to the MySQL database server.
 
 You can add the CIDR mentioned above, by browsing to the Settings panel of your MySQL server and clicking the Manage Access button. Once added the `0.0.0.0/0` CIDR and saving the changes, you should see the CIDR being explicitly listed on the settings panel, as shown here.
 
@@ -569,4 +569,5 @@ Congratulations, you implemented a fully functional CRUD application and deploye
 * [Query relational databases: PostgreSQL](https://techdocs.akamai.com/akamai-functions/docs/query-relational-databases-postgresql.md)
 * [Build a Supabase cache proxy](https://techdocs.akamai.com/akamai-functions/docs/build-a-supabase-cache-proxy.md)
 * [Schedule tasks with cron jobs in Spin (Tech Preview)](https://techdocs.akamai.com/akamai-functions/docs/schedule-tasks-with-cron-jobs-in-spin.md)
-* [Use the Key Value store](https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store.md)
+* [Use the Key Value store (Limited availability)](https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store.md)
+* [Secure your Akamai Function](https://techdocs.akamai.com/akamai-functions/docs/secure-an-akamai-function.md)

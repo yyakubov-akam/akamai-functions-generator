@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-06-12T01:14:42.000Z
+updatedAt: 2026-11-10T11:58:20.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
@@ -20,7 +20,7 @@ The goal of this tutorial is to route a specific path on your existing property,
 Before you start this tutorial, make sure you have the following prerequisites. You can also follow the steps in the [Quickstart](https://techdocs.akamai.com/akamai-functions/docs/quickstart) guide to get up and running with Akamai Functions in less than two minutes.
 
 * [Create and configure a Property](https://techdocs.akamai.com/property-mgr/docs/workflow-ov) in Akamai Control Center.
-* Sign up for the public preview so you can [login](https://techdocs.akamai.com/akamai-functions/docs/quickstart#login-to-akamai-functions) to Akamai Functions. If you haven’t already requested access, please complete the [Onboarding form](https://fibsu0jcu2g.typeform.com/fwf-preview?typeform-source=developer.fermyon.com).
+* [Sign up for Akamai Functions](https://techdocs.akamai.com/akamai-functions/docs/sign-up-for-akamai-functions).
 * [Install Spin](https://techdocs.akamai.com/akamai-functions/docs/quickstart#install-spin) and the [aka Plugin for Spin](https://techdocs.akamai.com/akamai-functions/docs/quickstart#install-the-aka-plugin-for-spin).
 
 # Build and deploy the Spin app
@@ -72,7 +72,7 @@ Workspace linked to app hello-akamai-functions
 Waiting for app to be ready... ready
 
 App Routes:
-- hello-akamai-functions: https://ec8a19d8-6d10-4056-bb69-cc864306b489.aka.akamai.tech (wildcard)
+- hello-akamai-functions: https://ec8a19d8-6d10-4056-bb69-cc864306b489.fwf.app (wildcard)
 ```
 
 5. Copy the URL from the output in your terminal window, we’ll need it in a second to configure the Akamai Property.
@@ -123,32 +123,19 @@ Next, we have to update the Property in Akamai Control Center.
 
 With the match condition in place, we can add the custom behaviors using the Behaviors panel.
 
-5. Add the [Origin Server](https://techdocs.akamai.com/property-mgr/docs/origin-server) behavior using the **Standard Property Behavior** button from within the **+ Behavior** drop-down button. We’ll leave the majority of properties  settings unchanged. However, ensure to update these fields.
+5. Add the [Origin Server](https://techdocs.akamai.com/property-mgr/docs/origin-server) behavior using the **Standard Property Behavior** button from within the **+ Behavior** drop-down button.
+6. Select **Functions** as the **Origin Type** for your Origin Server.
 
-[block:parameters]
-{
-  "data": {
-    "h-0": "Field name",
-    "h-1": "Desired value",
-    "0-0": "Origin Server Hostname",
-    "0-1": "`<origin*` of your Spin application.  \nYou can use the [`spin aka app status` command](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference#spin-aka-app-status)  or [`spin aka deploy` command](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference#spin-aka-deploy) to find the origin server host name of your Spin application.",
-    "1-0": "Forward Host Header",
-    "1-1": "Origin Hostname"
-  },
-  "cols": 2,
-  "rows": 2,
-  "align": [
-    "left",
-    "left"
-  ]
-}
-[/block]
+It is not required that you select Functions, but it is highly recommended.
+
+When you select Functions as the Origin type the [Global Request Number](https://techdocs.akamai.com/property-mgr/docs/global-req-number) behavior is automatically added to your property. This behavior generates a unique identifier for each request on the ​Akamai​ edge network.
 
 > 📘
 >
-> You can get the origin of your Spin Application by removing the `https://` prefix and the trailing slash (`/`) from the end of its URL.
+> If you pass the [Global Request Number](https://techdocs.akamai.com/property-mgr/docs/global-req-number) with custom metadata you should use `AKA_GRN_HEADER` as the header name to prevent duplication when selecting Functions as the Origin Type.
 
-6. Next, we'll prevent the Akamai Property from sending the routing criteria `(/hello/)` as a path to the Spin application running on Akamai Functions.
+6. Add the Akamai Functions origin that you want to use to retrieve the content in the **Functions Origin** textbox.
+7. Next, we'll prevent the Akamai Property from sending the routing criteria `(/hello/)` as a path to the Spin application running on Akamai Functions.
 
 To do this, we'll add a [Modify Outgoing Request Path](https://techdocs.akamai.com/property-mgr/docs/modify-outgoing-req-path) behavior to our rule. Use the Standard Property Behavior button from within the **+ Behaviors** drop-down button. Update the following fields in the **Modify Outgoing Request Path** behavior.
 
@@ -167,7 +154,7 @@ Here are the behaviors configured for this tutorial.
   "images": [
     {
       "image": [
-        "https://techdocs.akamai.com/akamai-functions/img/functions-add-origin-server-v1.jpg",
+        "https://techdocs.akamai.com/akamai-functions/img/functions-originServer-v3.jpg",
         null,
         "Origin Server behavior"
       ],
@@ -196,7 +183,7 @@ Here are the behaviors configured for this tutorial.
 }
 [/block]
 
-Click the **Save** button.
+8. Click the **Save** button.
 
 # Activate the new property version
 
@@ -225,4 +212,5 @@ You should see `Hello, Akamai Functions` printed to `stdout`. This means that yo
 * [Query relational databases: PostgreSQL](https://techdocs.akamai.com/akamai-functions/docs/query-relational-databases-postgresql.md)
 * [Build a Supabase cache proxy](https://techdocs.akamai.com/akamai-functions/docs/build-a-supabase-cache-proxy.md)
 * [Schedule tasks with cron jobs in Spin (Tech Preview)](https://techdocs.akamai.com/akamai-functions/docs/schedule-tasks-with-cron-jobs-in-spin.md)
-* [Use the Key Value store](https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store.md)
+* [Use the Key Value store (Limited availability)](https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store.md)
+* [Secure your Akamai Function](https://techdocs.akamai.com/akamai-functions/docs/secure-an-akamai-function.md)

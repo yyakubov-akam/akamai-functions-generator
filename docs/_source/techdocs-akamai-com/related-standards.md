@@ -51,7 +51,7 @@ The [source repository](https://github.com/spinframework/spin/tree/main/docs/con
 
 # Sibling pages
 
-* [aka command reference](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference.md)
+* [Spin aka command reference](https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference.md)
 * [WebAssembly language support matrix](https://techdocs.akamai.com/akamai-functions/docs/webassembly-language-support-matrix.md)
 * [HTTP trigger reference](https://techdocs.akamai.com/akamai-functions/docs/http-trigger-reference.md)
 * [FAQ](https://techdocs.akamai.com/akamai-functions/docs/faq.md)

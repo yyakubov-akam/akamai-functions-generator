@@ -4,32 +4,32 @@
   "sources": {
     "https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference": {
       "active": true,
-      "content_sha256": "cc95eef5b09b3a134080b15eefe3ef0574a8102d5c5fd9e7e60869cfb3d80de7",
-      "etag": "\"f6bb81abac4cc0b773b355cf907efdf55a939232:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "c4d03fb1a2b2ff6c6a0c3ecf061f5c0ff59c40fd2ff535c38a0e1eb8d37cb1bc",
+      "etag": "\"8486c0f6b9d7a1775fe32ecc70825752e54017ce-7f193558:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/aka-command-reference.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/aka-command-reference.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/akamai-functions-and-edgeworkers-comparison": {
       "active": true,
-      "content_sha256": "8b8fd9539919180b75ab471297961bd01c45d6b06074e77a2467128f71591cf8",
-      "etag": "\"9dd7e81f2069b5b471cedd676fd775db29a9cd5b:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "5572eb00b75bf9ab1bb0e2a902ae350d09053b0a8aecd109dc8c4ef11ae03bda",
+      "etag": "\"9dd7e81f2069b5b471cedd676fd775db29a9cd5b-3f38dd2f:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/akamai-functions-and-edgeworkers-comparison.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/akamai-functions-and-edgeworkers-comparison.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/application-logs": {
       "active": true,
-      "content_sha256": "5fdf6c1e61c4bd68a194432d7ab6dcbbe1b23d58ca22243c2d833c2ae0ee04fa",
-      "etag": "\"d716dd0f5f73e3324628a1d9c4013481bb9dd5ba:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "934988e15fc371dba7001c97300b1af91667b4490a4bddb31e089cf9173fb1e7",
+      "etag": "\"5c6ec82df8702a5dbccd6fff4b7065ce7e3a6068-f3ea1d77:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/application-logs.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/application-logs.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/build-a-supabase-cache-proxy": {
       "active": true,
-      "content_sha256": "9369d9d635fc3800ac45cc778e5631f7e839f83b1d36e43eff3c91b80c1c71b1",
-      "etag": "\"3d6024f55fae641a14230f890f0380d8bea43817:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "e75c01bb709b8aeadd9211855184e126c5b6abcadf51f18f5a7ed72c104edc7e",
+      "etag": "\"307eb2730b3336529da7bea50fbb570168410f9d-a2820312:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/build-a-supabase-cache-proxy.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/build-a-supabase-cache-proxy.md"
@@ -37,7 +37,7 @@
     "https://techdocs.akamai.com/akamai-functions/docs/delete-an-application": {
       "active": true,
       "content_sha256": "3d914396e03e065082ea3feb2f67ac0330a7e762c793856ef6e77aff066f1801",
-      "etag": "\"7c4c19fef7bbc953be442fc3af2ab2fc65bb15f9:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "etag": "\"7c4c19fef7bbc953be442fc3af2ab2fc65bb15f9-a13cc595:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/delete-an-application.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/delete-an-application.md"
@@ -45,7 +45,7 @@
     "https://techdocs.akamai.com/akamai-functions/docs/deploy-app-variables": {
       "active": true,
       "content_sha256": "5ef9194666c21b2b5e1b8aa97b0637e00a56c1ad00fefb4fbe18e78f76d970f8",
-      "etag": "\"f259411eb292c0098ed08279e37a5bd5755caec2:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "etag": "\"f259411eb292c0098ed08279e37a5bd5755caec2-36415088:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/deploy-app-variables.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/deploy-app-variables.md"
@@ -53,31 +53,31 @@
     "https://techdocs.akamai.com/akamai-functions/docs/deploy-using-github-actions": {
       "active": true,
       "content_sha256": "6a86f4eba8ce7e7477166d774b662fb96841ae3a9fc90534f86da1abcfa40a68",
-      "etag": "\"a128ceba54b971cd4f57e850b62e26213ba46c92:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "etag": "\"a128ceba54b971cd4f57e850b62e26213ba46c92-a8c1c0cf:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/deploy-using-github-actions.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/deploy-using-github-actions.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/faq": {
       "active": true,
-      "content_sha256": "00cdf03e3683886d8e3db3630ef78cdf75b988a486113e5d101b8b6b4da391e1",
-      "etag": "\"2ac2930fbf0071d2a98893d094d9c123fbd87119:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "e8d34a3fb5ac295221a4553fc812efd60e2075e14adc41c064f8d32bcbf16372",
+      "etag": "\"3a426f3430e9435af3f99c4dc4bb190d36b7d913-3ec70f03:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/faq.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/faq.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/http-trigger-reference": {
       "active": true,
-      "content_sha256": "bc74d17965748b7fa8a38f8ef1724270ec68ae29843f1785c90c6dcde8bc99a3",
-      "etag": "\"bad255a5e70784ef4ce48a2c103835a20fda86c8:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "97945b62ec32b968c400a7c5ca8ce7596e91edc1701b8b6d01bc47d5816eb0d7",
+      "etag": "\"bad255a5e70784ef4ce48a2c103835a20fda86c8-aa843f84:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/http-trigger-reference.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/http-trigger-reference.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/integrate-with-property-manager": {
       "active": true,
-      "content_sha256": "2c28a66ac3fe0929561bf29ec20889fe1484ff84027d604b22196e688ab9d3cd",
-      "etag": "\"5add23fb7e1a876d29cfe87c8540d5a9f61bc06f:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "a46485eb2a028ed99481a741db227fd40055f1203e87e8ca47b776937742ec16",
+      "etag": "\"04809b58c2a6cd037f3682b4d47325c3af2cc397-128152bf:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/integrate-with-property-manager.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/integrate-with-property-manager.md"
@@ -85,7 +85,7 @@
     "https://techdocs.akamai.com/akamai-functions/docs/link-an-application": {
       "active": true,
       "content_sha256": "aab76d1daf0416a38538c27f5a30380b1ad039a396b1af90f68918ae48b9f556",
-      "etag": "\"1b47d458b47e0ee497436bfba157af48ebad27c9:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "etag": "\"1b47d458b47e0ee497436bfba157af48ebad27c9-93c22d58:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/link-an-application.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/link-an-application.md"
@@ -93,71 +93,87 @@
     "https://techdocs.akamai.com/akamai-functions/docs/list-and-inspect-your-applications": {
       "active": true,
       "content_sha256": "1e2470a45d8a9ad861eb29b7a5a05eb8387b7cf632271ecef36fb370cf3501f4",
-      "etag": "\"e4436fd873cd9a6bf65d259e718ff9d097e70560:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "etag": "\"e4436fd873cd9a6bf65d259e718ff9d097e70560-b5b4b166:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/list-and-inspect-your-applications.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/list-and-inspect-your-applications.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/manage-accounts": {
       "active": true,
-      "content_sha256": "cfe3befd39b1aa28b0d8e856d966c64a2647d4eee939ddc1df6700a345f05b54",
-      "etag": "\"e596573e69be90ea3ad23f847fdf1326f0eb4d68:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "9059b121b168f19fef92583a26a55ec1e052ee65d3ff71abb507a21f1837a242",
+      "etag": "\"1ad6a5c37bfc8875e4707da722b62a9756ca2174-b5123a74:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/manage-accounts.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/manage-accounts.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/query-relational-databases-mysql": {
       "active": true,
-      "content_sha256": "c25f080e47012730b1daaac5d0354519e2a493b85f74c0709da5bc3995bc12e2",
-      "etag": "\"18074f6152cd82bd82154e9e7d0c57dbe51b547e:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "3b8dbc2f162488f8e9c4574cdfafe337ad615154d4d94e6700c274d54f42aaf1",
+      "etag": "\"13ab97b07c05aa6424079b3f6e2786fca5119543-eed39e61:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/query-relational-databases-mysql.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/query-relational-databases-mysql.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/query-relational-databases-postgresql": {
       "active": true,
-      "content_sha256": "ca6719d884a8466a56b5618ebeb1035055b9b7d936b355c043bd22a2c4af987e",
-      "etag": "\"a37d3bb2846dba7c6177f290b4719ac9e460190d:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "574a2dd1c9d60e50ee798cbe9fd8d6b405d4695439428cf4a9b6604679e79985",
+      "etag": "\"363f908741302dfbd87ade897eab4e1e8149214e-62d82f6d:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/query-relational-databases-postgresql.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/query-relational-databases-postgresql.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/quickstart": {
       "active": true,
-      "content_sha256": "50d93f546feb93846455f76063f3d4afa2135ed23003494e5c267f108b764286",
-      "etag": "\"d0d515d415ce42ae914d2b829b253c46f86fdb30-ca210664d66beddd38962476950af8251f6d5442:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "3a5736b7cf5fa028e13156ef3661af56d0324401495d3799af9ccee7c56eceeb",
+      "etag": "\"7791b4d1051d0f5063cf9ce50fb9814380431776-ea1e3a49-ca210664d66beddd38962476950af8251f6d5442:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/quickstart.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/quickstart.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/quotas-and-limits": {
       "active": true,
-      "content_sha256": "7e5aca2f3e1cdb899c6327d15fb5aa3e592603e926dfc5a169efdcc815c13574",
-      "etag": "\"10ee0874bfe60e93780252a6f7c7e903371ff8bc:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "e108fe9ce84a9d4ab42e017da880efff48560078a949d79e2586e0c088d2add8",
+      "etag": "\"9e6c12372126dab03fd898b1c0c7b83a76b0aa59-9835a3d1:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/quotas-and-limits.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/quotas-and-limits.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/related-standards": {
       "active": true,
-      "content_sha256": "baaf1bfe4043777c22a85c7625a77519cd315fc8a774e26368695faa937509e3",
-      "etag": "\"8af8eff92426a0e5bc2db0689397744898fad6fd:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "3c6878b42a3b13a48ffdcf4d586c17a9a4dc8e8abf06eec5b34fe13bf121b342",
+      "etag": "\"8af8eff92426a0e5bc2db0689397744898fad6fd-cfb08b91:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/related-standards.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/related-standards.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/schedule-tasks-with-cron-jobs-in-spin": {
       "active": true,
-      "content_sha256": "efd4d34f5bda9b211440830ef15fdee2019b64fe21c628ff9fdf0af0f3500304",
-      "etag": "\"840473c6cc5f96489a5421d890eae6e8e25efe99:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "6545cfb4f4f7ca5b1aa82b7657eb6151e4fb9ed0b514ac707506a7f6e9381fd3",
+      "etag": "\"bd042dfc0c0c994bc6cf60861da5b64b9f309930-e27b470c:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/schedule-tasks-with-cron-jobs-in-spin.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/schedule-tasks-with-cron-jobs-in-spin.md"
     },
+    "https://techdocs.akamai.com/akamai-functions/docs/secure-an-akamai-function": {
+      "active": true,
+      "content_sha256": "9c9c9014313c644eb888932b592865d775f0ac686a0845891db68804829d98f9",
+      "etag": "\"bf5f90ea23b592153a3cb1496340f472da555d60-7282c0cf-ca210664d66beddd38962476950af8251f6d5442:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
+      "filepath": "docs/_source/techdocs-akamai-com/secure-an-akamai-function.md",
+      "last_modified": null,
+      "source_url": "https://techdocs.akamai.com/akamai-functions/docs/secure-an-akamai-function.md"
+    },
+    "https://techdocs.akamai.com/akamai-functions/docs/sign-up-for-akamai-functions": {
+      "active": true,
+      "content_sha256": "a7da24fccb51ebb4302d1f1fa6579d9a46d978b4ed6a4bb075dd3b53d8edaae9",
+      "etag": "\"e4b0ab040d578315d261ded66a89b2a370c84a3a-811340d9:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
+      "filepath": "docs/_source/techdocs-akamai-com/sign-up-for-akamai-functions.md",
+      "last_modified": null,
+      "source_url": "https://techdocs.akamai.com/akamai-functions/docs/sign-up-for-akamai-functions.md"
+    },
     "https://techdocs.akamai.com/akamai-functions/docs/stream-data-from-linode-object-store": {
       "active": true,
-      "content_sha256": "df2a3e98bf00369b7303e0d1d49f1d892ff84061b7fdaf5b07b4a31f848b6f79",
-      "etag": "\"63bad1f65c68c8015ddf1130f7e1908e2cb863f4:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "e2c2857ceb205e748348cd2e2d3232440de8bd2951411b70e1194686be0acebc",
+      "etag": "\"20cf2ee230a1c655909b3ef9e5b19024d70ada51-b7f8fd75:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/stream-data-from-linode-object-store.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/stream-data-from-linode-object-store.md"
@@ -165,7 +181,7 @@
     "https://techdocs.akamai.com/akamai-functions/docs/update-an-application": {
       "active": true,
       "content_sha256": "9420a2b583a34e01a6fe63eb3ecca85eee86f4bf645e73997ce89b5af6ba461c",
-      "etag": "\"8127010f7c86016cfb1f9ad7558242e037376a15:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "etag": "\"8127010f7c86016cfb1f9ad7558242e037376a15-2571f5d0:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/update-an-application.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/update-an-application.md"
@@ -173,31 +189,31 @@
     "https://techdocs.akamai.com/akamai-functions/docs/use-cases": {
       "active": true,
       "content_sha256": "f9558dbad38a52180d534f6932a9ace3ea8dc9a08c73413c9858d5439b75ad00",
-      "etag": "\"93444eb4b23a504d5bb69846fd0998b73a6c960d:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "etag": "\"93444eb4b23a504d5bb69846fd0998b73a6c960d-3b25b460:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/use-cases.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/use-cases.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store": {
       "active": true,
-      "content_sha256": "fa73ab1a8bb5a0ec02ffdc74785306b0ca2e685c002f5a89798ae4d69a4378fe",
-      "etag": "\"eaf7150ebb34dfc372bb80205761c83563107fe2:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "0bbe813ef0a34300d1b5dedd44857aaa56986ba9be286151d50de3a532f3f151",
+      "etag": "\"f2043b15519cd3a0920a6c4d78dc91b181f195ed-828d9a12:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/use-the-key-value-store.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/use-the-key-value-store.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/webassembly-language-support-matrix": {
       "active": true,
-      "content_sha256": "e7cb64754ba75daf420a176c0e29515d12c5f5b9f560846b6e245a3a144ba07b",
-      "etag": "\"487a755778bcd051784b758bc548dabaf2b9b308:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "af0e025a42926ba8bb7b14f4e8a07df1b4b51647ba629df5a29b709d969b357e",
+      "etag": "\"487a755778bcd051784b758bc548dabaf2b9b308-71ea5fb9:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/webassembly-language-support-matrix.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/webassembly-language-support-matrix.md"
     },
     "https://techdocs.akamai.com/akamai-functions/docs/welcome": {
       "active": true,
-      "content_sha256": "c73a6bc503f57a86a99fc5dcaef0d9670f0dd22106ba4557576fdfce3929dec6",
-      "etag": "\"442868581b992efd9dbfaa7bcdce228c9203df0f:expanded|cbdb0ff6361e9f1fed0cf9076b52b2fb94b018be:public|818b8b09\"",
+      "content_sha256": "25e4430f2be71acb313b86862b4e3399f928d12d1f65017f86f257d881e511b4",
+      "etag": "\"b0d6b61c86f53a9be9b1b6ed107f954ede2bbec2-7e988758:expanded|4d9a3edfc3b4d5578cb88cc2c532d594cb1db948:public|c997a151\"",
       "filepath": "docs/_source/techdocs-akamai-com/welcome.md",
       "last_modified": null,
       "source_url": "https://techdocs.akamai.com/akamai-functions/docs/welcome.md"
