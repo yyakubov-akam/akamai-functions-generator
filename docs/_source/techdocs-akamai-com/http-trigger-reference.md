@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-03-26T14:47:40.000Z
+updatedAt: 2026-10-08T15:34:48.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
@@ -7,7 +7,7 @@ agentTools:
 
 # HTTP trigger reference
 
-Akamai Functions currently supports the `http` [trigger type](https://spinframework.dev/v3/http-trigger) for Spin applications.
+Akamai Functions currently supports the `http` [trigger type](https://spinframework.dev/http-trigger) for Spin applications.
 
 ```
 [[trigger.http]]
@@ -28,15 +28,15 @@ In addition to any headers passed by the client making the request to an applica
   "data": {
     "h-0": "Header",
     "h-1": "Description",
-    "0-0": "[`spin-full-url`](https://spinframework.dev/v3/http-trigger#additional-request-information-spin-full-url)",
+    "0-0": "[`spin-full-url`](https://spinframework.dev/http-trigger#additional-request-information-spin-full-url)",
     "0-1": "The full URL of the request. This includes full host and scheme information.",
-    "1-0": "[`spin-path-info`](https://spinframework.dev/v3/http-trigger#additional-request-information-spin-path-info)",
+    "1-0": "[`spin-path-info`](https://spinframework.dev/http-trigger#additional-request-information-spin-path-info)",
     "1-1": "The request path relative to the component route.",
-    "2-0": "[`spin-path-match-n`](https://spinframework.dev/v3/http-trigger#additional-request-information-spin-path-match-n)",
+    "2-0": "[`spin-path-match-n`](https://spinframework.dev/http-trigger#additional-request-information-spin-path-match-n)",
     "2-1": "(Conditionally included) Where n is the pattern for a single-segment wildcard value.  \nFor example, `spin-path-match-userid` will access the value in a URL containing a route that includes `userid`.",
-    "3-0": "[`spin-matched-route`](https://spinframework.dev/v3/http-trigger#additional-request-information-spin-matched-route)",
+    "3-0": "[`spin-matched-route`](https://spinframework.dev/http-trigger#additional-request-information-spin-matched-route)",
     "3-1": "The part of the trigger route that was matched by the route, including the wildcard indicator if present.",
-    "4-0": "[`spin-raw-component-route`](https://spinframework.dev/v3/http-trigger#additional-request-information-spin-raw-component-route)",
+    "4-0": "[`spin-raw-component-route`](https://spinframework.dev/http-trigger#additional-request-information-spin-raw-component-route)",
     "4-1": "The component route pattern matched, including the wildcard indicator if present.",
     "5-0": "",
     "5-1": ""

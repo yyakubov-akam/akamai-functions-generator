@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-07-23T21:47:23.000Z
+updatedAt: 2026-10-08T15:33:36.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
@@ -34,36 +34,36 @@ Limits are subject to change as part of public preview. If you’re interested i
 
 Akamai Functions supports Spin CLI v0.6.0 or newer. Some Spin SDK triggers and APIs are not yet supported on Akamai Functions.
 
-To view the feature support for various programming languages, visit the [Spin Language Support Guide](https://spinframework.dev/v3/language-support-overview).
+To view the feature support for various programming languages, visit the [Spin Language Support Guide](https://spinframework.dev/language-support-overview).
 
-| Spin feature                                                                                              | Akamai Functions support                                                                             |
-| :-------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
-| **Triggers**                                                                                              |                                                                                                      |
-| [HTTP](https://spinframework.dev/v3/http-trigger)                                                         | Supported                                                                                            |
-| [Redis](https://spinframework.dev/v3/redis-trigger)                                                       | Not supported                                                                                        |
-| **APIs**                                                                                                  |                                                                                                      |
-| [Outbound HTTP](https://spinframework.dev/v3/rust-components#sending-outbound-http-requests)              | Supported                                                                                            |
-| [Application Variables](https://spinframework.dev/v3/variables)                                           | Supported                                                                                            |
-| [Key Value Storage](https://spinframework.dev/v3/kv-store-api-guide)                                      | Supported                                                                                            |
-| [SQLite Storage](https://spinframework.dev/v3/sqlite-api-guide)                                           | Not supported                                                                                        |
-| [Serverless AI](https://spinframework.dev/v3/serverless-ai-api-guide)                                     | [Limited Access](https://fibsu0jcu2g.typeform.com/to/dOFZ338a?typeform-source=developer.fermyon.com) |
-| [Service Chaining](https://spinframework.dev/v3/http-outbound#local-service-chaining)                     | Supported                                                                                            |
-| [MySQL](https://spinframework.dev/v3/rdbms-storage#using-mysql-and-postgresql-from-applications)          | Supported                                                                                            |
-| [PostgreSQL](https://spinframework.dev/v3/rdbms-storage#using-mysql-and-postgresql-from-applications)     | Supported                                                                                            |
-| [Outbound Redis](https://spinframework.dev/v3/rust-components#storing-data-in-redis-from-rust-components) | Supported                                                                                            |
-| [wasi-blobstore](https://github.com/WebAssembly/wasi-blobstore)                                           | Not supported in Spin, Not supported in Akamai Functions                                             |
-| [wasi-config](https://github.com/WebAssembly/wasi-config)                                                 | Supported (2024-09-27 snapshot)                                                                      |
-| [wasi-keyvalue](https://github.com/WebAssembly/wasi-keyvalue)                                             | `wasi:keyvalue/store` and `wasi:keyvalue/batch` interfaces supported (2024-10-17 snapshot)           |
-| [wasi-messaging]()                                                                                        | Not supported in Spin, Not supported in Akamai Functions                                             |
-| **Features**                                                                                              |                                                                                                      |
-| [Component dependencies](https://spinframework.dev/v3/writing-apps#using-component-dependencies)          | Supported                                                                                            |
-| **Extensibility**                                                                                         |                                                                                                      |
-| [Custom Triggers](https://spinframework.dev/v3/extending-and-embedding)                                   | Not supported                                                                                        |
+| Spin feature                                                                                           | Akamai Functions support                                                                             |
+| :----------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
+| **Triggers**                                                                                           |                                                                                                      |
+| [HTTP](https://spinframework.dev/http-trigger)                                                         | Supported                                                                                            |
+| [Redis](https://spinframework.dev/redis-trigger)                                                       | Not supported                                                                                        |
+| **APIs**                                                                                               |                                                                                                      |
+| [Outbound HTTP](https://spinframework.dev/rust-components#sending-outbound-http-requests)              | Supported                                                                                            |
+| [Application Variables](https://spinframework.dev/variables)                                           | Supported                                                                                            |
+| [Key Value Storage](https://spinframework.dev/kv-store-api-guide)                                      | Supported                                                                                            |
+| [SQLite Storage](https://spinframework.dev/sqlite-api-guide)                                           | Not supported                                                                                        |
+| [Serverless AI](https://spinframework.dev/serverless-ai-api-guide)                                     | [Limited Access](https://fibsu0jcu2g.typeform.com/to/dOFZ338a?typeform-source=developer.fermyon.com) |
+| [Service Chaining](https://spinframework.dev/http-outbound#local-service-chaining)                     | Supported                                                                                            |
+| [MySQL](https://spinframework.dev/rdbms-storage#using-mysql-and-postgresql-from-applications)          | Supported                                                                                            |
+| [PostgreSQL](https://spinframework.dev/rdbms-storage#using-mysql-and-postgresql-from-applications)     | Supported                                                                                            |
+| [Outbound Redis](https://spinframework.dev/rust-components#storing-data-in-redis-from-rust-components) | Supported                                                                                            |
+| [wasi-blobstore](https://github.com/WebAssembly/wasi-blobstore)                                        | Not supported in Spin, Not supported in Akamai Functions                                             |
+| [wasi-config](https://github.com/WebAssembly/wasi-config)                                              | Supported (2024-09-27 snapshot)                                                                      |
+| [wasi-keyvalue](https://github.com/WebAssembly/wasi-keyvalue)                                          | `wasi:keyvalue/store` and `wasi:keyvalue/batch` interfaces supported (2024-10-17 snapshot)           |
+| [wasi-messaging]()                                                                                     | Not supported in Spin, Not supported in Akamai Functions                                             |
+| **Features**                                                                                           |                                                                                                      |
+| [Component dependencies](https://spinframework.dev/writing-apps#using-component-dependencies)          | Supported                                                                                            |
+| **Extensibility**                                                                                      |                                                                                                      |
+| [Custom Triggers](https://spinframework.dev/extending-and-embedding)                                   | Not supported                                                                                        |
 
 # Other limits
 
 You cannot use local hostnames such as `localhost` or short service names, as you might in Docker Compose or Kubernetes, to communicate between Spin applications. To call another Spin application, use its full public URL instead, for example,`https://<app-id>.fwf.app`.
 
-[Runtime configuration](https://spinframework.dev/v3/dynamic-configuration#runtime-configuration) is not supported at this time.
+[Runtime configuration](https://spinframework.dev/dynamic-configuration#runtime-configuration) is not supported at this time.
 
 Support for Cron jobs and the ability to [Schedule tasks with cron jobs in Spin](https://techdocs.akamai.com/akamai-functions/docs/schedule-tasks-with-cron-jobs-in-spin) is currently in Tech Preview.

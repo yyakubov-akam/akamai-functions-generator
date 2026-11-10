@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-06-12T01:16:39.000Z
+updatedAt: 2026-10-08T15:10:56.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
@@ -92,7 +92,7 @@ We'll use the `http-js` Spin application template for this tutorial.
 
 > 👍
 >
-> For more information about application templates, refer to the [official Spin CLI documentation](https://spinframework.dev/v3/managing-templates).
+> For more information about application templates, refer to the [official Spin CLI documentation](https://spinframework.dev/managing-templates).
 
 # Create a new Spin application
 
@@ -112,7 +112,7 @@ npm install
 
 # Configuration
 
-1. Open the Spin application’s `spin.toml` file, add an application variable and link it to the `hello-postgresql` component. This lets you modify the connection string for PostgreSQL without changing the actual source code. Consult the Spin documentation to learn more about [using variables in Spin](https://spinframework.dev/v3/variables).
+1. Open the Spin application’s `spin.toml` file, add an application variable and link it to the `hello-postgresql` component. This lets you modify the connection string for PostgreSQL without changing the actual source code. Consult the Spin documentation to learn more about [using variables in Spin](https://spinframework.dev/variables).
 
 ```
 [variables]  

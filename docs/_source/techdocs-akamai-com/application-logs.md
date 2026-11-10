@@ -1,11 +1,11 @@
 ---
-updatedAt: 2026-04-16T15:02:17.000Z
+updatedAt: 2026-10-08T15:38:10.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
 ---
 
-# Application logs
+# Application logs and usage
 
 Spin application logs help you to understand runtime behavior and gather insights.
 
@@ -30,4 +30,4 @@ The `spin aka logs` command prints all log messages to `stdout`.
 
 The log messages above were generated using the [`log/slog` package](https://go.dev/blog/slog) by a Spin application written in Go. Everything your Spin application writes to `stdout` and `stderr` is captured by Akamai Functions and made accessible via the `spin aka logs` command.
 
-By default, the logs print to `stdout` on Akamai Functions. To enable verbose spin error messages, you need to run add the `--verbose` flag. To see applications logs when running your function locally with `spin up`, please go the [observability guide for Spin](https://spinframework.dev/v3/observing-apps#application-logs) for more information.
+By default, the logs print to `stdout` on Akamai Functions. To enable verbose spin error messages, you need to run add the `--verbose` flag. To see applications logs when running your function locally with `spin up`, please go the [observability guide for Spin](https://spinframework.dev/observing-apps#application-logs) for more information.

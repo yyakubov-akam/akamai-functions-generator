@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-07-23T22:20:42.000Z
+updatedAt: 2026-10-08T16:05:16.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
@@ -123,7 +123,7 @@ Follow the steps above to update your `SPIN_AKA_ACCESS_TOKEN` repository secret 
 
 # Add additional build tools
 
-Some applications need additional build tools installed before it will compile. For example, if your project is written in Rust, it will need the `wasm32-wasip1` Rust compiler target available. For full language-specific setup instructions, see the guides for [Rust](https://spinframework.dev/v3/rust-components), [Go](https://spinframework.dev/v3/go-components), [JavaScript/TypeScript](https://spinframework.dev/v3/javascript-components), and [Python](https://spinframework.dev/v3/python-components).
+Some applications need additional build tools installed before it will compile. For example, if your project is written in Rust, it will need the `wasm32-wasip1` Rust compiler target available. For full language-specific setup instructions, see the guides for [Rust](https://spinframework.dev/rust-components), [Go](https://spinframework.dev/go-components), [JavaScript/TypeScript](https://spinframework.dev/javascript-components), and [Python](https://spinframework.dev/python-components).
 
 Add any custom tooling you need to compile your project prior to calling `spin build`.
 

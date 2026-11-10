@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-07-21T20:45:33.000Z
+updatedAt: 2026-10-08T15:23:34.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
@@ -83,7 +83,7 @@ The Spin project provides installers that are supported on Windows (amd64).
 
 1. Download the [Windows binary release of Spin](https://github.com/spinframework/spin/releases/tag/v3.6.2) from GitHub.
 2. Unzip the binary release and place the `spin.exe` in your system path.
-3. Install the Spin templates or plugins for the programming language that you want to use. For a starter list, see the [Installing Templates and Plugins](https://spinframework.dev/v3/install#installing-templates-and-plugins) section in the [Spin](https://spinframework.dev/v3/index) documentation.
+3. Install the Spin templates or plugins for the programming language that you want to use. For a starter list, see the [Installing Templates and Plugins](https://spinframework.dev/install#installing-templates-and-plugins) section in the [Spin](https://spinframework.dev/index) documentation.
 
 </AkamaiTab>
 
@@ -106,7 +106,7 @@ spin plugins update
 spin plugins upgrade aka
 ```
 
-You can learn more about managing Spin plugins in this [article](https://spinframework.dev/v3/managing-plugins.md).
+You can learn more about managing Spin plugins in this [article](https://spinframework.dev/managing-plugins.md).
 
 > 👍
 >
@@ -183,7 +183,7 @@ You’ll need the TinyGo compiler, as the standard Go compiler does not yet supp
 
 # Create a new Spin application
 
-Next we’ll prepare an application with Spin. There are code samples below for you to use, but you can write an [app from scratch](https://spinframework.dev/v3/writing-apps) or use an [existing template](https://spinframework.dev/hub). The [Spin Hub](https://spinframework.dev/hub) has many reference examples and templates. You can also find several code samples, sorted by use case in the [Akamai Functions GitHub repo](https://github.com/akamai-developers/akamai-functions-samples).
+Next we’ll prepare an application with Spin. There are code samples below for you to use, but you can write an [app from scratch](https://spinframework.dev/writing-apps) or use an [existing template](https://spinframework.dev/hub). The [Spin Hub](https://spinframework.dev/hub) has many reference examples and templates. You can also find several code samples, sorted by use case in the [Akamai Functions GitHub repo](https://github.com/akamai-developers/akamai-functions-samples).
 
 <AkamaiTabs>
 <AkamaiTab title="JavaScript">

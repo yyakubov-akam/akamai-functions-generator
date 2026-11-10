@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-08-05T21:52:57.000Z
+updatedAt: 2026-10-08T16:04:46.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
@@ -7,7 +7,7 @@ agentTools:
 
 # Deploy and specify application variables
 
-Spin supports [application variables](https://spinframework.dev/v3/variables). Instead of being static, their values can be updated without modifying the application, creating a simpler experience for rotating secrets, updating API endpoints, and more.
+Spin supports [application variables](https://spinframework.dev/variables). Instead of being static, their values can be updated without modifying the application, creating a simpler experience for rotating secrets, updating API endpoints, and more.
 
 > 👍
 >

@@ -1,5 +1,5 @@
 ---
-updatedAt: 2026-03-31T21:38:10.000Z
+updatedAt: 2026-04-02T12:36:47.000Z
 agentTools:
   siteIndex: https://techdocs.akamai.com/llms.txt
   projectIndex: https://techdocs.akamai.com/akamai-functions/llms.txt
